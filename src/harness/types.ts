@@ -1,7 +1,9 @@
 // The harness contract — the only place agent-specific knowledge lives. Core
 // modules import these types and never the `'claude'`/`'codex'` literals.
 
-export type AgentKind = 'claude' | 'codex'
+// `(string & {})` keeps 'claude'/'codex' autocompleting while still accepting
+// any third-party kind — a Harness with a novel `kind` compiles without a cast.
+export type AgentKind = 'claude' | 'codex' | (string & {})
 export type AgentState = 'executing' | 'waiting' | 'idle' | 'complete' | 'error'
 
 export type Action =

@@ -254,10 +254,7 @@ export class HostServer extends EventEmitter {
     res.end()
   }
 
-  private async handleRegister(
-    req: http.IncomingMessage,
-    res: http.ServerResponse,
-  ): Promise<void> {
+  private async handleRegister(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
     const body = await readBody(req)
     let cwd = ''
     let wrapperId: string | null = null

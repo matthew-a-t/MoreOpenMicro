@@ -15,7 +15,7 @@ describe('registry', () => {
   })
 
   it('registers a third-party harness under its own kind', () => {
-    const gemini = { ...codexHarness, kind: 'gemini' } as unknown as Harness
+    const gemini: Harness = { ...codexHarness, kind: 'gemini' }
     registerHarness(gemini)
     expect(harnessFor('gemini')).toBe(gemini)
   })
