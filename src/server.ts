@@ -221,7 +221,13 @@ export class HostServer extends EventEmitter {
     }
 
     const header = req.headers[INSTANCE_HEADER]
-    const wrapperId = Array.isArray(header) ? header[0] : header
+    let wrapperId = Array.isArray(header) ? header[0] : header
+    // GUI host fallback: a usesPty:false host drives a desktop app that has no
+    // OPENMICRO_INSTANCE_ID env, so its hooks arrive with an empty/missing
+    // header — attribute them to the host wrapper so state reaches the
+    // tracker. usesPty defaults true, so this is a no-op for CLI harnesses.
+    if (!wrapperId && this.hostWrapperId && this.hostHarness.usesPty === false)
+      wrapperId = this.hostWrapperId
 
     // Only sessions owned by an active wrapper (the host's own agent or a
     // registered client) drive the FSM. Header-less hooks come from agent

@@ -114,24 +114,38 @@ function shutdown(): void {
   }
 }
 
-const agent = new AgentPty(
-  harness.command,
-  harness.buildArgs(invocation.agentArgs),
-  wrapperId,
-  (code) => {
-    shutdown()
-    process.exit(code)
-  },
-  // Terminal focus changes (window switch, tmux/herdr pane click) go to the
-  // host — voice must disengage the moment its terminal is no longer active.
-  // The host posts to itself: one path for every wrapper.
-  (focused) => reportTerminalFocus(wrapperId, focused),
-)
+// GUI harnesses (usesPty: false) drive a desktop app instead of spawning a
+// CLI under a pty: controller bytes route to harness.execute, and the host
+// server keeps the event loop alive in place of a child process.
+const usesPty = harness.usesPty ?? true
+const agent: Pick<AgentPty, 'write' | 'dispose'> = usesPty
+  ? new AgentPty(
+      harness.command,
+      harness.buildArgs(invocation.agentArgs),
+      wrapperId,
+      (code) => {
+        shutdown()
+        process.exit(code)
+      },
+      // Terminal focus changes (window switch, tmux/herdr pane click) go to the
+      // host — voice must disengage the moment its terminal is no longer active.
+      // The host posts to itself: one path for every wrapper.
+      (focused) => reportTerminalFocus(wrapperId, focused),
+    )
+  : { write: (bytes: string) => harness.execute?.(bytes), dispose: () => {} }
 
 // Ctrl+C passthrough: forward the interrupt to the child so it decides how to
 // handle it (in raw mode the terminal already routes ^C straight to the pty;
 // this covers a programmatic `kill -INT`). SIGTERM cleans up and exits.
-process.on('SIGINT', () => agent.write('\x03'))
+// GUI harnesses have no child to forward to: clean up and exit instead.
+process.on('SIGINT', () => {
+  if (usesPty) {
+    agent.write('\x03')
+  } else {
+    shutdown()
+    process.exit(130)
+  }
+})
 process.on('SIGTERM', () => {
   shutdown()
   process.exit(0)
