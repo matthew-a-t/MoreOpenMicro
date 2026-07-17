@@ -28,6 +28,7 @@
 The working tree has uncommitted fork-direction rewrites of `CLAUDE.md` and `CONTRIBUTING.md` (reviewed, wanted). Land them on `main` as a standalone docs commit, then branch for the milestone.
 
 **Files:**
+
 - Commit as-is: `CLAUDE.md`, `CONTRIBUTING.md`
 
 - [ ] **Step 1: Confirm only the two doc files are dirty**
@@ -61,10 +62,12 @@ Expected: `Switched to a new branch 'feat/windows-foundation'`
 `package.json` line 39 runs `chmod +x node_modules/node-pty/prebuilds/*/spawn-helper ../node-pty/prebuilds/*/spawn-helper 2>/dev/null || true`. npm executes scripts through cmd.exe on Windows: `chmod` and `true` don't exist and `/dev/null` isn't a path, so install is expected to fail. Replace the shell one-liner with a Node script that keeps the exact same semantics (both hoisting locations, silent best-effort) and no-ops on Windows. Runtime hoisting cases stay covered by `fixSpawnHelperPermissions` in `src/pty.ts:16`.
 
 **Files:**
+
 - Create: `scripts/postinstall.mjs`
 - Modify: `package.json:39`
 
 **Interfaces:**
+
 - Produces: `npm install` succeeds on win32/darwin/linux; `scripts/postinstall.mjs` runs standalone via `node scripts/postinstall.mjs`, always exits 0.
 
 - [ ] **Step 1: Observe the current failure (evidence first)**
@@ -139,6 +142,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
 No `.gitattributes`; the local box has `core.autocrlf=true`, so tracked files materialize with CRLF (`git ls-files --eol` already shows `w/crlf` for package.json). Prettier's default `endOfLine: "lf"` makes `format:check` fail on CRLF working files — locally and on any `windows-latest` runner. Pin LF via attributes so checkouts are deterministic on every OS.
 
 **Files:**
+
 - Create: `.gitattributes`
 
 - [ ] **Step 1: Observe the failure**
@@ -197,6 +201,7 @@ Expected: `All matched files use Prettier code style!` If real (non-EOL) formatt
 `test/layers.test.ts:37` sets `process.env.HOME` and expects `os.homedir()` to follow. Node's `os.homedir()` reads `USERPROFILE` on Windows, `HOME` on POSIX — the test fails on Windows. Set and restore both variables. (Also fixes a latent restore bug: the current `afterEach` never deletes `HOME` when it started undefined.)
 
 **Files:**
+
 - Modify: `test/layers.test.ts:10-21,37-42`
 
 - [ ] **Step 1: Run the failing test**
@@ -266,6 +271,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
 `test/pty.test.ts:27-53` asserts chmod puts exec bits (`mode & 0o111`) on `spawn-helper`. Windows has no exec bits (libuv derives `X` from file extension), so these assertions fail there. spawn-helper itself is a POSIX-only artifact — Windows node-pty prebuilds ship ConPTY binaries with no spawn-helper at all. Correct behavior: the fixer is meaningless on win32 → explicit early return in src, skip the exec-bit describe block on win32.
 
 **Files:**
+
 - Modify: `src/pty.ts:16-17`
 - Modify: `test/pty.test.ts:27`
 
@@ -320,6 +326,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
 ### Task 6: Full verify green locally
 
 **Files:**
+
 - Modify: whatever residual failures implicate (contingency — see triage rules)
 
 - [ ] **Step 1: Run the gate**
@@ -347,6 +354,7 @@ Expected: exit 0. Save the tail of the output for the PR body.
 ### Task 7: Runtime smoke — doctor without a controller
 
 **Files:**
+
 - None expected (observation task; failures route through Task 6 Step 2 triage)
 
 - [ ] **Step 1: Run doctor headless**
@@ -365,6 +373,7 @@ Add the observed output to the smoke-checklist notes. Any crash = product bug �
 Prove the agent-side pipeline on Windows: host binds 48762, hooks merge into `~/.claude/settings.json`, a hook POST classifies into agent state. Uses headless print-mode Claude so no interactive TTY is needed.
 
 **Files:**
+
 - None expected (observation task)
 
 - [ ] **Step 1: Start a wrapped headless agent**
@@ -405,10 +414,12 @@ Record which branch was taken plus evidence (log lines or their absence).
 Only if Task 8 Step 4 showed hooks not arriving. Generate cmd.exe-compatible hook commands on win32; POSIX commands stay byte-identical to today's.
 
 **Files:**
+
 - Modify: `src/hooks-install.ts:91-93,159-161`
 - Test: `test/hooks-install.test.ts`
 
 **Interfaces:**
+
 - Consumes: `HOOK_URL` from `src/ports.js`; `installClaudeHooks(settingsPath?)` / `installCodexHooks(hooksPath?)` signatures unchanged.
 - Produces: hook command strings in settings files; on win32 they use `%OPENMICRO_INSTANCE_ID%` / `%HERDR_PANE_ID%` / `>NUL 2>&1 & exit /b 0`. Marker `127.0.0.1:48762/om-hook/` present in every variant.
 
@@ -518,6 +529,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
 ### Task 10: CI — add windows-latest
 
 **Files:**
+
 - Modify: `.github/workflows/ci.yml:12`
 
 - [ ] **Step 1: Extend the matrix**
@@ -525,7 +537,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
 In `.github/workflows/ci.yml` line 12:
 
 ```yaml
-        os: [ubuntu-latest, macos-latest, windows-latest]
+os: [ubuntu-latest, macos-latest, windows-latest]
 ```
 
 - [ ] **Step 2: Verify gate, commit, push**
@@ -553,11 +565,13 @@ Expected: all three OS jobs green. A windows-job failure not seen locally → tr
 ### Task 11: Docs, changelog, PR
 
 **Files:**
+
 - Modify: `CLAUDE.md` (CI caveat + postinstall wording), `CONTRIBUTING.md` (CI wording + Windows setup notes), `CHANGELOG.md` (new Unreleased section)
 
 - [ ] **Step 1: CLAUDE.md**
 
 Two edits in the fork-direction paragraph:
+
 - Replace `CI currently runs ubuntu + macos only — no Windows job yet.` with `CI runs the verify gate on ubuntu, macos, and windows.`
 - Replace `the `postinstall` chmod of node-pty's spawn-helper (POSIX-only, harmless elsewhere)` with `the spawn-helper chmod in `scripts/postinstall.mjs` (POSIX-only by design — explicit win32 no-op)` — the "known macOS-only pieces" list shrinks accordingly.
 
