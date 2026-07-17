@@ -8,16 +8,21 @@ import type { OpenMicroConfig } from '../src/layers.js'
 let dir: string
 let configPath: string
 let realHome: string | undefined
+let realUserProfile: string | undefined
 
 beforeEach(() => {
   dir = fs.mkdtempSync(path.join(os.tmpdir(), 'openmicro-config-'))
   configPath = path.join(dir, 'config.json')
   realHome = process.env.HOME
+  realUserProfile = process.env.USERPROFILE
 })
 
 afterEach(() => {
   fs.rmSync(dir, { recursive: true, force: true })
   if (realHome !== undefined) process.env.HOME = realHome
+  else delete process.env.HOME
+  if (realUserProfile !== undefined) process.env.USERPROFILE = realUserProfile
+  else delete process.env.USERPROFILE
 })
 
 describe('loadConfig / saveConfig', () => {
@@ -34,8 +39,9 @@ describe('loadConfig / saveConfig', () => {
     expect(DEFAULT_CONFIG.layers[0].bindings.r2).toEqual({ type: 'keys', bytes: '\x15' })
   })
 
-  it('defaults to ~/.openmicro/config.json, respecting a HOME override', () => {
-    process.env.HOME = dir
+  it('defaults to ~/.openmicro/config.json, respecting a home-dir override', () => {
+    process.env.HOME = dir // os.homedir() source on POSIX
+    process.env.USERPROFILE = dir // os.homedir() source on Windows
     const config = loadConfig()
     expect(config).toEqual(DEFAULT_CONFIG)
     expect(fs.existsSync(path.join(dir, '.openmicro', 'config.json'))).toBe(true)
