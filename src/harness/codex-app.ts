@@ -11,11 +11,11 @@ import type { Action, AgentState, Harness } from './types.js'
 export const codexAppHarness: Harness = {
   kind: 'codex-app',
   usesPty: false,
-  // command/buildArgs are unused — usesPty:false means no process is spawned.
-  // Sane placeholders only.
+  // No pty is spawned; instead the cli runs command+buildArgs once at startup
+  // to launch/activate the app, mirroring how pty harnesses launch their CLI.
   command: 'open',
-  buildArgs(userArgs: string[]): string[] {
-    return userArgs
+  buildArgs(): string[] {
+    return ['-a', 'Codex']
   },
 
   installHooks() {
