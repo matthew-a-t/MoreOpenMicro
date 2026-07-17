@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.1.8] - 2026-07-17
+
+### Fixed
+
+- Herdr agent visibility: claim the herdr pane at wrapper startup (releasing it on shutdown) so the wrapped agent's own herdr integration hook can't claim it first — herdr honors the first source to claim a pane and silently drops state reports from every other source, which kept openmicro sessions out of the herdr agents panel
+
 ## [0.1.7] - 2026-07-17
 
 ### Added
