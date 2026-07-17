@@ -216,6 +216,15 @@ if (!isHost) {
     scheduleFeedback()
   }
 
+  // Herdr cycles are async (each awaits herdr CLI subprocesses) but were fired
+  // unawaited: two quick presses read the same herdrWorkspaceId/AgentTarget and
+  // compute the same "next" — the second press was silently swallowed. Chain
+  // them so each cycle sees the state the previous one wrote.
+  let herdrOps: Promise<void> = Promise.resolve()
+  function queueHerdrOp(fn: () => Promise<void>): void {
+    herdrOps = herdrOps.then(fn).catch((err) => logger.warn('herdr cycle failed', err))
+  }
+
   // Mouse clicks on herdr panes/spaces change focus entirely inside herdr —
   // no controller event fires. Poll the focused herdr agent and retarget
   // voice/keys routing whenever it moves.
@@ -250,7 +259,7 @@ if (!isHost) {
   /** Change focus: index -1 cycles to the next tracked session, else jumps to a slot. */
   function focusSession(index: number): void {
     if (herdrWorkspaceId !== null && index < 0) {
-      void cycleHerdrAgent()
+      queueHerdrOp(cycleHerdrAgent)
       return
     }
     const sessions = server.tracker.list()
@@ -306,7 +315,34 @@ if (!isHost) {
     write: writeToFocused,
     focusSession,
     setLayer: (index) => router.setLayer(index),
-    cycleHerdrSpace: () => void cycleHerdrSpace(),
+    cycleHerdrSpace: () => queueHerdrOp(cycleHerdrSpace),
+  }
+
+  // Voice (Space) toggles dictation inside the focused pane's own agent
+  // process — openmicro must remember which pane holds it open, else starting
+  // voice in a second pane leaves the first one transcribing every word too.
+  // ponytail: best-effort tracking. Toggling dictation off inside the pane
+  // itself (keyboard Space) goes unseen here; next controller press resyncs.
+  let voiceSessionKey: string | null = null
+
+  /** Before a push_to_talk press: toggle dictation off wherever it was left on. */
+  function retargetVoice(): void {
+    if (herdrForeignFocus) return // press is dropped by writeToFocused anyway
+    const key = focusKey()
+    if (voiceSessionKey !== null && voiceSessionKey !== key) {
+      const off = harness.resolveAction({ type: 'push_to_talk' }, { thinkingLevel: 0 })
+      if (off) {
+        if (voiceSessionKey === SELF_SESSION_KEY) {
+          agent.write(off.bytes)
+        } else {
+          const instanceId = server.instanceForSession(voiceSessionKey)
+          if (instanceId) server.sendKeysToInstance(instanceId, off.bytes)
+        }
+      }
+      voiceSessionKey = key // old pane closed, this press opens it here
+      return
+    }
+    voiceSessionKey = voiceSessionKey === key ? null : key // same-pane toggle
   }
 
   let lastAttentionId: string | null = null
@@ -341,6 +377,7 @@ if (!isHost) {
         return
       }
       if (e.kind === 'button' && !e.pressed) return // press-only for non-repeating buttons
+      if (action.type === 'push_to_talk') retargetVoice()
       dispatchAction(action, deps)
     } catch (err) {
       logger.error('controller event handling failed', err)

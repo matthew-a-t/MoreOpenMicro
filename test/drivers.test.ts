@@ -40,10 +40,13 @@ describe('parseXboxReport', () => {
     expect(buttons(parseXboxReport(report({ 3: 0 }))).get('dpad_up')).toBe(false)
   })
 
-  it('treats a >50% trigger as an r2 button press', () => {
+  it('treats a >25% trigger as an r2 button press', () => {
     const pressed = report({ 6: 0xff, 7: 0x03 }) // 1023 = fully pulled
     expect(buttons(parseXboxReport(pressed)).get('r2')).toBe(true)
     expect(axes(parseXboxReport(pressed)).get('r2')).toBe(1)
+    const soft = report({ 6: 0x40, 7: 0x01 }) // 320/1023 ≈ 31% — a soft tap
+    expect(buttons(parseXboxReport(soft)).get('r2')).toBe(true)
+    expect(buttons(parseXboxReport(report({ 6: 0xc8 }))).get('r2')).toBe(false) // 200/1023 ≈ 20%
     expect(buttons(parseXboxReport(report())).get('r2')).toBe(false)
   })
 
