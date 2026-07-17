@@ -61,8 +61,10 @@ export function parseXboxReport(data: Buffer): ControllerEvent[] {
   const rt = ((data[7]! << 8) | data[6]!) / 1023
   events.push({ kind: 'axis', axis: 'l2', value: Math.max(0, Math.min(1, lt)) })
   events.push({ kind: 'axis', axis: 'r2', value: Math.max(0, Math.min(1, rt)) })
-  events.push({ kind: 'button', button: 'l2', pressed: lt > 0.5 })
-  events.push({ kind: 'button', button: 'r2', pressed: rt > 0.5 })
+  // ponytail: 0.25 single threshold — a half-pull requirement made soft taps
+  // miss. Deduper edge-filters chatter; add hysteresis if noise double-fires.
+  events.push({ kind: 'button', button: 'l2', pressed: lt > 0.25 })
+  events.push({ kind: 'button', button: 'r2', pressed: rt > 0.25 })
 
   events.push({ kind: 'axis', axis: 'left_x', value: normalizeAxis(data.readInt16LE(8)) })
   events.push({ kind: 'axis', axis: 'left_y', value: normalizeAxis(data.readInt16LE(10)) })
