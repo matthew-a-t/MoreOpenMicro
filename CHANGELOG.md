@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Xbox Wireless Controller over Bluetooth (`045e:0b20`) support via a dedicated parser for the standard Xbox BT HID report (report ID 0x01: uint16 sticks centred at 0x8000, 10-bit triggers, rotary hat, buttons at bytes 14-15). Previously the PID was unknown, so the pad fell to the generic driver, which misread the report ID as a held south button
 - Both Xbox certifications ship as doctor fixtures: wired Xbox One S (`045e-02ea-usb`) and Bluetooth Xbox Wireless Controller (`045e-0b20-bluetooth`), 17/17 controls each, replayed by CI
+- Doctor now asks for the pad's real make/model (firmware product strings are often generic or spoofed — DS4-mode pads claim to be a DUALSHOCK 4) and records it in the report; CONTROLLERS.md shows it alongside a new "Reports as" column
+- CONTROLLERS.md gained a community guide for adding new controllers with an AI coding agent: the capture → decode → implement → certify loop
 
 ## [0.2.1] - 2026-07-17
 
