@@ -191,6 +191,8 @@ describe('codex-app harness', () => {
         '-e',
         'tell application "Codex" to activate',
         '-e',
+        'delay 0.15',
+        '-e',
         'tell application "System Events" to keystroke return',
       ],
       expect.any(Function),

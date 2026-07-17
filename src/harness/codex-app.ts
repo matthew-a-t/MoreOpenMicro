@@ -102,9 +102,11 @@ export const codexAppHarness: Harness = {
       const steps = payload
         .split('\n')
         .flatMap((step) => ['-e', `tell application "System Events" to ${step}`])
+      // The short delay lets activation land before the keystroke — without it
+      // a keypress sent while Codex is still coming frontmost is dropped.
       execFile(
         'osascript',
-        ['-e', 'tell application "Codex" to activate', ...steps],
+        ['-e', 'tell application "Codex" to activate', '-e', 'delay 0.15', ...steps],
         (err, _stdout, stderr) => report(err, stderr),
       )
     }
