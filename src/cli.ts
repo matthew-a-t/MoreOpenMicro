@@ -181,6 +181,16 @@ if (!isHost) {
     const next = agents[(current + 1) % agents.length]!
     herdrAgentTarget = next.terminal_id
     void focusAgent(next.terminal_id)
+    // Voice/keys must follow the herdr pick: retarget input routing to the
+    // session hosted in that pane, else writeToFocused keeps sending to the
+    // previously-focused session — possibly in another space.
+    for (const [sessionId, paneId] of server.sessionPanes) {
+      if (paneId === next.pane_id) {
+        focusSessionId = sessionId
+        scheduleFeedback()
+        break
+      }
+    }
   }
 
   /** Change focus: index -1 cycles to the next tracked session, else jumps to a slot. */

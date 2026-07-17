@@ -61,6 +61,8 @@ export class HostServer extends EventEmitter {
   readonly tracker: SessionTracker
   /** session_id → wrapper id, learned from hook ownership headers. */
   readonly sessionOwners = new Map<string, string>()
+  /** session_id → herdr pane id, learned from hook pane headers — lets herdr agent cycling retarget input routing. */
+  readonly sessionPanes = new Map<string, string>()
   /** Which harness classifies a wrapper's hooks, resolved from /register. */
   private wrapperHarness = new Map<string, Harness>()
 
@@ -153,6 +155,7 @@ export class HostServer extends EventEmitter {
       if (owner !== wrapperId) continue
       removed = this.tracker.remove(sessionId) || removed
       this.sessionOwners.delete(sessionId)
+      this.sessionPanes.delete(sessionId)
     }
     return removed
   }
@@ -227,12 +230,16 @@ export class HostServer extends EventEmitter {
         // Harnesses classify SessionEnd as null (caller removes) — a dead waiter
         // must not pin the FSM.
         changed = this.tracker.remove(sessionId)
+        this.sessionPanes.delete(sessionId)
         if (herdrPaneId) releaseAgent(herdrPaneId)
       } else {
         const state = harness.stateForHookEvent(event, payload)
         if (state !== null) {
           changed = this.tracker.apply(sessionId, state, { focusOnStop: Boolean(wrapperId) })
-          if (herdrPaneId) reportAgentState(herdrPaneId, state, sessionId)
+          if (herdrPaneId) {
+            this.sessionPanes.set(sessionId, herdrPaneId)
+            reportAgentState(herdrPaneId, state, sessionId)
+          }
         }
       }
       if (changed) this.emit('aggregate', this.tracker.aggregate())

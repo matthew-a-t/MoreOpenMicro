@@ -253,6 +253,22 @@ describe('HostServer', () => {
     expect(releaseAgent).toHaveBeenCalledWith('pane-7')
   })
 
+  it('tracks session → herdr pane from the hook header and forgets it on SessionEnd', async () => {
+    await fetch(`${base}/om-hook/UserPromptSubmit`, {
+      method: 'POST',
+      headers: { 'X-Herdr-Pane-Id': 'pane-7' },
+      body: JSON.stringify({ session_id: 's1' }),
+    })
+    expect(server.sessionPanes.get('s1')).toBe('pane-7')
+
+    await fetch(`${base}/om-hook/SessionEnd`, {
+      method: 'POST',
+      headers: { 'X-Herdr-Pane-Id': 'pane-7' },
+      body: JSON.stringify({ session_id: 's1' }),
+    })
+    expect(server.sessionPanes.has('s1')).toBe(false)
+  })
+
   it('never reports to herdr without the pane header or from untrusted hooks', async () => {
     await postHook('UserPromptSubmit', 's1') // trusted but no pane header
     expect(reportAgentState).not.toHaveBeenCalled()
