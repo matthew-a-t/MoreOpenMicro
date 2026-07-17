@@ -8,6 +8,25 @@
 
 **Tech Stack:** TypeScript ESM, Node >= 22, vitest, node-hid + node-pty (native), prettier/eslint, GitHub Actions.
 
+## Outcome
+
+Executed 2026-07-17. Deviations from the plan as written:
+
+- **Task 8.5 (not in the plan) was inserted** after the Task 8 smoke found that
+  node-pty's ConPTY does no PATHEXT resolution — bare `claude`/`codex` harness
+  commands could not spawn on Windows. Fixed in the core spawn path
+  (`src/pty.ts`, pure PATH×PATHEXT resolver; `.exe`/`.com` spawned directly,
+  `.cmd`/`.bat` through `cmd.exe /c`).
+- **Task 9 was skipped**: the Task 8 smoke proved real Claude Code hooks
+  arrive at `/om-hook/` on Windows through a POSIX-capable shell — `$VAR`
+  expansion, quoting, and `-d @-` all intact — so the existing hook commands
+  needed no win32 variant. The codex hook round-trip on Windows remains
+  unverified (only spawn was smoked); revisit before relying on codex state
+  feedback there.
+- **No PR was opened** (user decision); CI instead gained `workflow_dispatch`
+  and `feat/**` push triggers so branch CI runs without PRs. CI green on
+  ubuntu, macos, and windows (runs 29616203616, 29616607372).
+
 ## Global Constraints
 
 - Node >= 22 (`engines` in package.json). Local box: v22.21.1, npm 10.9.4.

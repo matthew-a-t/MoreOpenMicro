@@ -151,7 +151,8 @@ describe('spawnAgentProcess', () => {
       expect(call).toEqual({ command: path.join(dir, 'claude.exe'), args: ['-p', 'hi'] })
     } finally {
       process.env.PATH = previousPath
-      process.env.PATHEXT = previousPathext
+      if (previousPathext === undefined) delete process.env.PATHEXT
+      else process.env.PATHEXT = previousPathext
     }
   })
 
@@ -172,7 +173,8 @@ describe('spawnAgentProcess', () => {
       expect(call).toEqual({ command: 'claude', args: ['-p', 'hi'] })
     } finally {
       process.env.PATH = previousPath
-      process.env.PATHEXT = previousPathext
+      if (previousPathext === undefined) delete process.env.PATHEXT
+      else process.env.PATHEXT = previousPathext
     }
   })
 })
