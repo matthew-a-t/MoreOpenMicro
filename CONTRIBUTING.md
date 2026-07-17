@@ -31,10 +31,11 @@ Note for this fork: GUI harnesses that shell out to macOS-only tooling (like `co
 ```bash
 git clone https://github.com/matthew-a-t/MoreOpenMicro && cd MoreOpenMicro
 npm install        # Node >= 22; native deps: node-hid, node-pty
+# Windows: prebuilt binaries cover both node-hid and node-pty — no Visual Studio Build Tools needed
 npm run verify     # typecheck + lint + format:check + tests — must be green
 ```
 
-- Branch from `main`, keep PRs small and focused, and make `npm run verify` pass before pushing — CI runs the same gate (currently on ubuntu and macos; a Windows job is a welcome addition).
+- Branch from `main`, keep PRs small and focused, and make `npm run verify` pass before pushing — CI runs the same gate on ubuntu, macos, and windows.
 - Windows/Linux portability fixes are in scope even when they touch upstream-"stable" code: macOS-only assumptions (POSIX-only npm scripts, `osascript`, macOS HID quirks) are bugs from this fork's perspective, not conventions to preserve.
 - New controller drivers are pure parse functions (`src/controller/*-driver.ts`) + a fixture; study `xbox-driver.ts` and its tests for the pattern.
 - Hardware-behavior changes (lightbar, gestures, HID) should say in the PR what was verified on a physical pad vs. only in tests, and on which OS.

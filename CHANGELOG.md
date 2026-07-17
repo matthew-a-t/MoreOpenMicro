@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Fixed
+
+- Windows: `npm install` no longer fails at postinstall (the POSIX chmod one-liner is now a Node script that no-ops on win32)
+- Windows: `openmicro claude`/`openmicro codex` no longer crash at startup — node-pty's ConPTY does no PATHEXT resolution, so the harnesses' extensionless `claude`/`codex` commands went unresolved; the core spawn path now walks `PATH` × `PATHEXT` (`.exe`/`.com` spawn directly, `.cmd`/`.bat` route through `cmd.exe /c`)
+- Windows: test suite green — home-dir override honors `USERPROFILE`, POSIX exec-bit suite skipped where exec bits don't exist
+- Line endings pinned to LF via `.gitattributes`, so `prettier --check` passes on `core.autocrlf=true` checkouts
+
+### Added
+
+- CI runs the verify gate on `windows-latest` alongside ubuntu and macos, with `workflow_dispatch` and `feat/**` push triggers so branch CI runs without a PR
+
 ## [1.0.0] - 2026-07-17
 
 ### Added
