@@ -37,11 +37,68 @@ export function fixSpawnHelperPermissions(prebuildsDir?: string): void {
 
 type PtySpawner = typeof pty.spawn
 
+const DEFAULT_PATHEXT = '.COM;.EXE;.BAT;.CMD'
+
+/** Case-insensitive env lookup: real Windows shells disagree on PATH/PATHEXT
+ * casing (PowerShell: `path`, cmd.exe: `Path`, Git Bash: `PATH`), and a plain
+ * object copy of process.env — unlike process.env itself — doesn't normalize
+ * that for us. */
+function getEnvVar(env: Record<string, string | undefined>, name: string): string | undefined {
+  const key = Object.keys(env).find((k) => k.toLowerCase() === name.toLowerCase())
+  return key ? env[key] : undefined
+}
+
+/** node-pty's Windows ConPTY `startProcess` does no PATHEXT-style extension
+ * resolution: it looks for the literal filename given and throws `File not
+ * found` if it doesn't exist verbatim (verified: bare `claude` fails, only
+ * `claude.exe` exists on PATH). This resolves an extensionless command the
+ * same way `cmd.exe`/PATHEXT would, so harnesses can keep hardcoding bare
+ * names like `command: 'claude'`.
+ *
+ * Left unresolved (returned as-is): non-win32 platforms, commands that
+ * already carry an extension, and commands containing a path separator.
+ * `.exe`/`.com` matches spawn directly; `.cmd`/`.bat` matches (the common npm
+ * shim case) route through `cmd.exe /c` since ConPTY/CreateProcess cannot
+ * start a batch file directly. No match: the original command is returned
+ * unchanged, so node-pty produces its own (accurate) error. */
+export function resolveWindowsCommand(
+  command: string,
+  args: string[],
+  platform: NodeJS.Platform,
+  env: Record<string, string | undefined>,
+): { command: string; args: string[] } {
+  if (platform !== 'win32') return { command, args }
+  if (/[\\/]/.test(command) || path.extname(command) !== '') return { command, args }
+
+  const dirs = (getEnvVar(env, 'PATH') ?? '').split(';').filter(Boolean)
+  const exts = (getEnvVar(env, 'PATHEXT') ?? DEFAULT_PATHEXT).split(';').filter(Boolean)
+
+  for (const dir of dirs) {
+    for (const ext of exts) {
+      // Lowercase: PATHEXT conventionally lists uppercase extensions, but
+      // real binaries are almost always named in lowercase on disk (NTFS
+      // lookups are case-insensitive either way, so this only affects which
+      // casing the resolved path — and thus cmd.exe's argv — ends up with).
+      const lower = ext.toLowerCase()
+      const candidate = path.join(dir, command + lower)
+      if (!fs.existsSync(candidate)) continue
+      if (lower === '.exe' || lower === '.com') return { command: candidate, args }
+      if (lower === '.bat' || lower === '.cmd') {
+        return { command: 'cmd.exe', args: ['/c', candidate, ...args] }
+      }
+      // Some other PATHEXT extension (.vbs, .js, .py, ...) — not directly
+      // launchable by ConPTY either; keep searching.
+    }
+  }
+  return { command, args }
+}
+
 export function spawnAgentProcess(
   spawnPty: PtySpawner,
   command: string,
   args: string[],
   wrapperId: string | undefined,
+  platform: NodeJS.Platform = process.platform,
 ): pty.IPty {
   const env = { ...process.env } as Record<string, string>
   // herdr's own agent integration hooks (e.g. ~/.claude/hooks/herdr-agent-state.sh)
@@ -53,7 +110,8 @@ export function spawnAgentProcess(
   // pane. HERDR_PANE_ID stays: openmicro's hook curls echo it back to us.
   delete env.HERDR_ENV
   if (wrapperId) env.OPENMICRO_INSTANCE_ID = wrapperId
-  return spawnPty(command, args, {
+  const resolved = resolveWindowsCommand(command, args, platform, env)
+  return spawnPty(resolved.command, resolved.args, {
     name: process.env.TERM ?? 'xterm-256color',
     cols: process.stdout.columns,
     rows: process.stdout.rows,
