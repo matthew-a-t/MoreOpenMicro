@@ -11,6 +11,12 @@ export const GAMESIR_VID = 0x3537
 export const GAMESIR_PIDS = [0x1022] // G7 Pro
 
 const REPORT_ID = 0x07
+// The home button arrives on its own consumer-control report: 0x02 <bitmask>.
+// Mapped to 'touchpad' — the pad's M button is firmware-consumed (profile
+// switching) and never reaches the host, and share sends a keyboard
+// PrintScreen report, so home is the only spare host-visible button.
+const HOME_REPORT_ID = 0x02
+const HOME_BIT = 0x80
 
 const BYTE6_MAP: Array<[number, ButtonId]> = [
   [0x01, 'south'],
@@ -37,6 +43,9 @@ const BYTE7_MAP: Array<[number, ButtonId]> = [
  */
 export function parseGameSirReport(data: Buffer): ControllerEvent[] {
   const events: ControllerEvent[] = []
+  if (data[0] === HOME_REPORT_ID && data.length >= 2) {
+    return [{ kind: 'button', button: 'touchpad', pressed: (data[1]! & HOME_BIT) !== 0 }]
+  }
   if (data.length < 10 || data[0] !== REPORT_ID) return events
 
   for (const [bit, id] of BYTE6_MAP) {

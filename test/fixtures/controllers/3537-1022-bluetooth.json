@@ -124,7 +124,11 @@
       }
     },
     "touchpad": {
-      "status": "skip"
+      "status": "capture",
+      "capture": {
+        "idle": "020000",
+        "pressed": "028000"
+      }
     }
   },
   "axes": {},

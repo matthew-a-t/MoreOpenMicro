@@ -46,6 +46,11 @@ describe('parseGameSirReport', () => {
     expect(buttons(parseGameSirReport(report({ 5: 0x0f }))).get('dpad_up')).toBe(false)
   })
 
+  it('maps the home button report (0x02) to touchpad', () => {
+    expect(buttons(parseGameSirReport(Buffer.from('028000', 'hex'))).get('touchpad')).toBe(true)
+    expect(buttons(parseGameSirReport(Buffer.from('020000', 'hex'))).get('touchpad')).toBe(false)
+  })
+
   it('parses sticks and trigger analogs', () => {
     const a = axes(parseGameSirReport(report({ 1: 0xff, 2: 0x00, 8: 0xff, 9: 0x80 })))
     expect(a.get('left_x')).toBeCloseTo(0.99, 2)
