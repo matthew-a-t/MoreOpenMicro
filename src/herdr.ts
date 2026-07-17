@@ -69,6 +69,8 @@ export interface HerdrAgent {
   workspace_id: string
   /** Focusable target for `herdr agent focus` (terminal id). */
   terminal_id: string
+  /** Herdr pane hosting the agent — matches the X-Herdr-Pane-Id hook header. */
+  pane_id: string
 }
 
 /**
