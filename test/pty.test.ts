@@ -24,7 +24,7 @@ function makePrebuilds(entries: Record<string, string[]>): string {
   return tmp
 }
 
-describe('fixSpawnHelperPermissions', () => {
+describe.skipIf(process.platform === 'win32')('fixSpawnHelperPermissions', () => {
   it('makes spawn-helper executable in every prebuild dir', () => {
     const dir = makePrebuilds({
       'darwin-arm64': ['spawn-helper'],

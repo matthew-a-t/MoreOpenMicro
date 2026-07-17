@@ -14,6 +14,10 @@ import { logger } from './logger.js'
 // require() tells us where node-pty actually resolved to. Best effort: the
 // postinstall still covers root-owned global installs this can't write to.
 export function fixSpawnHelperPermissions(prebuildsDir?: string): void {
+  // Windows: no exec bits, and node-pty's win32 prebuilds (ConPTY) ship no
+  // spawn-helper — nothing to fix.
+  if (process.platform === 'win32') return
+
   try {
     const dir =
       prebuildsDir ??
