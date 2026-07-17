@@ -137,7 +137,6 @@ The diagnostic checks controller input and, on DualSense, lightbar/player-LED ou
 
 - DualSense is the only controller with lightbar and player-LED output. DS4, Xbox, and GameSir controllers are input-only; generic HID input is best-effort because report layouts vary.
 - DualSense has five player LEDs, so feedback represents at most five active session slots.
-- Xbox parsing currently supports its wired USB report layout, not Bluetooth.
 
 ## Add another harness
 
