@@ -158,6 +158,14 @@ if (!isHost) {
 
   const focusKey = (): string => focusSessionId ?? SELF_SESSION_KEY
 
+  /** Session hosted in a herdr pane, or null when the pane runs no openmicro session. */
+  function sessionForPane(paneId: string): string | null {
+    for (const [sessionId, herdrPane] of server.sessionPanes) {
+      if (herdrPane === paneId) return sessionId
+    }
+    return null
+  }
+
   /** Terminal writes go to the focused session's instance, else our own pty. */
   function writeToFocused(bytes: string): void {
     const instanceId = focusSessionId ? server.instanceForSession(focusSessionId) : null
@@ -194,16 +202,30 @@ if (!isHost) {
     // Voice/keys must follow the herdr pick: retarget input routing to the
     // session hosted in that pane. No session in that pane (foreign agent) →
     // clear focus rather than keep spilling into a stale session elsewhere.
-    let matched: string | null = null
-    for (const [sessionId, paneId] of server.sessionPanes) {
-      if (paneId === next.pane_id) {
-        matched = sessionId
-        break
-      }
-    }
-    focusSessionId = matched
+    focusSessionId = sessionForPane(next.pane_id)
     scheduleFeedback()
   }
+
+  // Mouse clicks on herdr panes/spaces change focus entirely inside herdr —
+  // no controller event fires. Poll the focused herdr agent and retarget
+  // voice/keys routing whenever it moves.
+  const HERDR_FOCUS_POLL_MS = 1000
+  let lastHerdrFocusPane: string | null = null
+
+  async function syncHerdrFocus(): Promise<void> {
+    if (!herdrPaneId && server.sessionPanes.size === 0) return // no herdr in play
+    const focused = (await listAgents()).find((a) => a.focused)
+    if (!focused || focused.pane_id === lastHerdrFocusPane) return
+    lastHerdrFocusPane = focused.pane_id
+    herdrWorkspaceId = focused.workspace_id
+    herdrAgentTarget = focused.terminal_id
+    focusSessionId = sessionForPane(focused.pane_id)
+    scheduleFeedback()
+  }
+
+  setInterval(() => {
+    syncHerdrFocus().catch((err) => logger.warn('herdr focus sync failed', err))
+  }, HERDR_FOCUS_POLL_MS).unref?.()
 
   /** Change focus: index -1 cycles to the next tracked session, else jumps to a slot. */
   function focusSession(index: number): void {
