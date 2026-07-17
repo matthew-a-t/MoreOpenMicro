@@ -162,9 +162,14 @@ describe('parseXboxGipReport', () => {
     expect(a.get('right_y')).toBe(1)
   })
 
-  it('ignores short or non-input frames', () => {
+  it('maps the guide button frame (0x07) to touchpad', () => {
+    expect(buttons(parseXboxGipReport(gip('07304c02015b'))).get('touchpad')).toBe(true)
+    expect(buttons(parseXboxGipReport(gip('07304d02005b'))).get('touchpad')).toBe(false)
+  })
+
+  it('ignores short frames', () => {
     expect(parseXboxGipReport(Buffer.alloc(8))).toEqual([])
-    expect(parseXboxGipReport(gip('0700e70201000000000000000000000000ff'))).toEqual([])
+    expect(parseXboxGipReport(Buffer.from('0730', 'hex'))).toEqual([])
   })
 })
 

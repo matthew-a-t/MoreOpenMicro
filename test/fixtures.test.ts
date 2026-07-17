@@ -14,7 +14,11 @@ import { describe, expect, it } from 'vitest'
 import { parseDs4Report } from '../src/controller/ds4-driver.js'
 import { parseGameSirReport } from '../src/controller/gamesir-driver.js'
 import { parseGenericReport } from '../src/controller/generic-driver.js'
-import { parseXboxReport } from '../src/controller/xbox-driver.js'
+import {
+  parseXboxGipReport,
+  parseXboxReport,
+  XBOX_GIP_PIDS,
+} from '../src/controller/xbox-driver.js'
 import type { ControllerEvent } from '../src/types.js'
 import {
   CONTROLLERS_PATH,
@@ -61,8 +65,12 @@ describe('controller fixtures replay through their parse function', () => {
   })
 
   for (const fixture of fixtures) {
-    const { driver, product } = fixture.controller
-    const parse = PARSERS[driver]
+    const { driver, product, pid } = fixture.controller
+    // Wired GIP pads share the 'xbox' driver name but use their own parser.
+    const parse =
+      driver === 'xbox' && XBOX_GIP_PIDS.includes(Number(pid))
+        ? parseXboxGipReport
+        : PARSERS[driver]
     // dualsense (parser lives in dualsense-ts) and capture-only 'none' have no
     // replayable parse function.
     if (!parse) continue

@@ -10,6 +10,7 @@ Every controller below has a committed `openmicro doctor` report. CI replays cap
 
 | Controller                      | VID:PID   | Connection | Driver    | Buttons passed | Output        | Status  |
 | ------------------------------- | --------- | ---------- | --------- | -------------- | ------------- | ------- |
+| Controller                      | 045e:02ea | usb        | xbox      | 17/17          | none          | ✅ full |
 | DualSense Wireless Controller   | 054c:0ce6 | usb        | dualsense | 17/17          | lightbar+LEDs | ✅ full |
 | DUALSHOCK 4 Wireless Controller | 054c:05c4 | bluetooth  | ds4       | 17/17          | none          | ✅ full |
 | GameSir-G7 Pro                  | 3537:1022 | bluetooth  | gamesir   | 17/17          | none          | ✅ full |

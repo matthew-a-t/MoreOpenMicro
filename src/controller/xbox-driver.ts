@@ -30,6 +30,13 @@ function normalizeAxis(raw: number): number {
  */
 export function parseXboxGipReport(data: Buffer): ControllerEvent[] {
   const events: ControllerEvent[] = []
+  // The guide button arrives as its own GIP message (type 0x07):
+  // 07 30 <seq> <len> <state> 5b, state bit 0 = pressed. Maps to `touchpad`
+  // like the other pads' home buttons.
+  if (data[0] === 0x07 && data.length >= 5) {
+    events.push({ kind: 'button', button: 'touchpad', pressed: (data[4]! & 0x01) !== 0 })
+    return events
+  }
   if (data.length < 18 || data[0] !== 0x20) return events
 
   const b4 = data[4]!

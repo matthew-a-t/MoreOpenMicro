@@ -1,0 +1,158 @@
+{
+  "schemaVersion": 1,
+  "openmicroVersion": "0.2.2",
+  "platform": "darwin",
+  "osVersion": "Darwin Kernel Version 25.5.0: Tue Jun  9 22:28:17 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8142",
+  "controller": {
+    "vid": "0x045e",
+    "pid": "0x02ea",
+    "product": "Controller",
+    "transport": "usb",
+    "driver": "xbox"
+  },
+  "results": {
+    "south": {
+      "status": "pass"
+    },
+    "east": {
+      "status": "pass",
+      "capture": {
+        "pressed": "2000d32c200000000000eb00d8f842fd2600",
+        "idle": "2000d12c100000000000eb00d8f842fd2600"
+      }
+    },
+    "west": {
+      "status": "pass",
+      "capture": {
+        "pressed": "2000d52c400000000000eb00d8f842fd2600",
+        "idle": "2000d32c200000000000eb00d8f842fd2600"
+      }
+    },
+    "north": {
+      "status": "pass",
+      "capture": {
+        "pressed": "2000d72c800000000000eb00d8f842fd2600",
+        "idle": "2000d52c400000000000eb00d8f842fd2600"
+      }
+    },
+    "dpad_up": {
+      "status": "pass",
+      "capture": {
+        "pressed": "2000d92c000100000000eb00d8f842fd2600",
+        "idle": "2000d72c800000000000eb00d8f842fd2600"
+      }
+    },
+    "dpad_down": {
+      "status": "pass",
+      "capture": {
+        "pressed": "2000db2c000200000000eb00d8f842fd2600",
+        "idle": "2000d92c000100000000eb00d8f842fd2600"
+      }
+    },
+    "dpad_left": {
+      "status": "pass",
+      "capture": {
+        "pressed": "2000dd2c000400000000eb00d8f842fd2600",
+        "idle": "2000db2c000200000000eb00d8f842fd2600"
+      }
+    },
+    "dpad_right": {
+      "status": "pass",
+      "capture": {
+        "pressed": "2000df2c000800000000eb00d8f842fd2600",
+        "idle": "2000dd2c000400000000eb00d8f842fd2600"
+      }
+    },
+    "l1": {
+      "status": "pass",
+      "capture": {
+        "pressed": "2000e12c001000000000eb00d8f842fd2600",
+        "idle": "2000df2c000800000000eb00d8f842fd2600"
+      }
+    },
+    "r1": {
+      "status": "pass",
+      "capture": {
+        "pressed": "2000e32c002000000000eb00d8f842fd2600",
+        "idle": "2000e12c001000000000eb00d8f842fd2600"
+      }
+    },
+    "l2": {
+      "status": "pass",
+      "capture": {
+        "pressed": "2000e52c000035010000eb00d8f842fd2600",
+        "idle": "2000e32c002000000000eb00d8f842fd2600"
+      }
+    },
+    "r2": {
+      "status": "pass",
+      "capture": {
+        "pressed": "2000eb2c00000000c302eb00d8f842fd2600",
+        "idle": "2000e52c000035010000eb00d8f842fd2600"
+      }
+    },
+    "l3": {
+      "status": "pass",
+      "capture": {
+        "pressed": "2000502c0040000000007b02871642fdc9ff",
+        "idle": "2000eb2c00000000c302eb00d8f842fd2600"
+      }
+    },
+    "r3": {
+      "status": "pass",
+      "capture": {
+        "pressed": "2000a82c00800000000090fedaf8fffaaaf7",
+        "idle": "2000502c0040000000007b02871642fdc9ff"
+      }
+    },
+    "menu": {
+      "status": "pass",
+      "capture": {
+        "pressed": "2000d62c040000000000f4fedaf864fba0fd",
+        "idle": "2000a82c00800000000090fedaf8fffaaaf7"
+      }
+    },
+    "view": {
+      "status": "pass",
+      "capture": {
+        "pressed": "2000d82c080000000000f4fedaf864fba0fd",
+        "idle": "2000d62c040000000000f4fedaf864fba0fd"
+      }
+    },
+    "touchpad": {
+      "status": "pass",
+      "capture": {
+        "pressed": "07306302015b",
+        "idle": "2000d82c080000000000f4fedaf864fba0fd"
+      }
+    }
+  },
+  "axes": {
+    "left_x": {
+      "min": -1,
+      "max": 1
+    },
+    "left_y": {
+      "min": -1,
+      "max": 1
+    },
+    "right_x": {
+      "min": -1,
+      "max": 1
+    },
+    "right_y": {
+      "min": -1,
+      "max": 1
+    },
+    "l2": {
+      "min": 0,
+      "max": 1
+    },
+    "r2": {
+      "min": 0,
+      "max": 1
+    }
+  },
+  "output": "unsupported",
+  "timestamp": "2026-07-17T13:37:25.627Z"
+}
