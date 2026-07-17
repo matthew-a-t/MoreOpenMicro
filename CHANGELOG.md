@@ -6,7 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- 8BitDo Ultimate 2 Wireless for PC support (`2dc8:6012`, DInput mode — hold B while powering on): new `8bitdo` parser for the 0x01 report (hat d-pad, 0-255 sticks, trigger analogs at bytes 6-7 in R2-then-L2 order, gyro bytes ignored), routed ahead of the generic fallback and certified 16/17 with a doctor fixture CI replays. The home button and L4/R4 paddles emit nothing in DInput mode, so `touchpad` has no source on this pad
+- `openmicro doctor` now explains XInput mode on Windows instead of reporting "no controller": XInput pads surface only as an unreadable HID stub, and 8BitDo pads get the exact hold-B-while-powering-on instruction
+
 ### Fixed
+
+- Windows: the generic HID fallback no longer claims XInput stub devices (`&IG_` paths, e.g. any pad in XInput mode) whose reads always fail — previously a silently dead controller
 
 - Windows: `npm install` no longer fails at postinstall (the POSIX chmod one-liner is now a Node script that no-ops on win32)
 - Windows: `openmicro claude`/`openmicro codex` no longer crash at startup — node-pty's ConPTY does no PATHEXT resolution, so the harnesses' extensionless `claude`/`codex` commands went unresolved; the core spawn path now walks `PATH` × `PATHEXT` (`.exe`/`.com` spawn directly, `.cmd`/`.bat` route through `cmd.exe /c`)

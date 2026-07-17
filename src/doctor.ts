@@ -20,6 +20,7 @@ import { HID, devices } from 'node-hid'
 import type { Device } from 'node-hid'
 import { createDriver, DUALSENSE_PIDS, DUALSENSE_VID } from './controller/hid-manager.js'
 import type { ControllerHAL } from './controller/hal.js'
+import { EIGHTBITDO_PIDS, EIGHTBITDO_VID } from './controller/8bitdo-driver.js'
 import { DS4_PIDS, DS4_VID } from './controller/ds4-driver.js'
 import { GAMESIR_PIDS, GAMESIR_VID } from './controller/gamesir-driver.js'
 import { XBOX_BT_PIDS, XBOX_GIP_PIDS, XBOX_PIDS, XBOX_VID } from './controller/xbox-driver.js'
@@ -105,6 +106,43 @@ function hex16(n: number): string {
   return '0x' + n.toString(16).padStart(4, '0')
 }
 
+/** True for Windows XInput HID stubs — enumerable but reads always fail. */
+function isXinputStub(device: Device): boolean {
+  return /&ig_/i.test(device.path ?? '')
+}
+
+/** A device the doctor can actually read: gamepad-looking and not an XInput stub. */
+function isReadableGamepad(device: Device): boolean {
+  return (
+    device.usagePage === 0x01 &&
+    (device.usage === 0x04 || device.usage === 0x05) &&
+    !!device.path &&
+    !isXinputStub(device)
+  )
+}
+
+/**
+ * Diagnose an XInput-mode controller: Windows exposes it only as a HID stub
+ * (an `&IG_` path) that never yields input reports. Returns a hint for the
+ * tester, or null when a readable gamepad is present (or nothing XInput-ish
+ * is connected at all).
+ */
+export function xinputModeHint(all: Device[]): string | null {
+  if (all.some(isReadableGamepad)) return null
+  const stub = all.find(isXinputStub)
+  if (!stub) return null
+  if (stub.vendorId === EIGHTBITDO_VID) {
+    return (
+      'This 8BitDo pad is in XInput mode, which Windows exposes only as an unreadable HID stub.\n' +
+      'Power it off, then hold B while powering on to boot it in DInput mode, and rerun `openmicro doctor`.'
+    )
+  }
+  return (
+    'This controller is in XInput mode, which Windows exposes only as an unreadable HID stub.\n' +
+    'If the pad has a DInput/DirectInput mode switch, use it and rerun `openmicro doctor`.'
+  )
+}
+
 /**
  * Best-effort transport guess from node-hid device info.
  *
@@ -142,7 +180,10 @@ function findDevice(type: ControllerType): Device | undefined {
   if (type === 'gamesir') {
     return all.find((d) => d.vendorId === GAMESIR_VID && GAMESIR_PIDS.includes(d.productId))
   }
-  return all.find((d) => d.usagePage === 0x01 && (d.usage === 0x04 || d.usage === 0x05) && d.path)
+  if (type === '8bitdo') {
+    return all.find((d) => d.vendorId === EIGHTBITDO_VID && EIGHTBITDO_PIDS.includes(d.productId))
+  }
+  return all.find(isReadableGamepad)
 }
 
 /** A minimal readline prompt helper: print a question, resolve with the typed line. */
@@ -385,11 +426,11 @@ export async function runDoctor(opts: { capture?: boolean } = {}): Promise<void>
 
     // ── Unknown controller (or --capture): raw capture-only fallback. ──
     if (!driver) {
-      const candidate = devices().find(
-        (d) => d.usagePage === 0x01 && (d.usage === 0x04 || d.usage === 0x05) && d.path,
-      )
+      const all = devices()
+      const candidate = all.find(isReadableGamepad)
       if (!candidate?.path) {
-        console.error('No controller detected. Plug one in and rerun `openmicro doctor`.')
+        const hint = xinputModeHint(all)
+        console.error(hint ?? 'No controller detected. Plug one in and rerun `openmicro doctor`.')
         return
       }
       const results = await runCaptureOnly(candidate.path, rl)

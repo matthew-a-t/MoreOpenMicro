@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Deduper } from '../src/controller/hal.js'
+import { parse8BitDoReport } from '../src/controller/8bitdo-driver.js'
 import { parseDs4Report } from '../src/controller/ds4-driver.js'
 import { parseGameSirReport } from '../src/controller/gamesir-driver.js'
 import { normalizeGenericAxis, parseGenericReport } from '../src/controller/generic-driver.js'
@@ -329,6 +330,145 @@ describe('parseDs4Report', () => {
   it('ignores non-0x01 and short reports', () => {
     expect(parseDs4Report(report('11808080800f00000000'))).toEqual([])
     expect(parseDs4Report(report('018080'))).toEqual([])
+  })
+})
+
+describe('parse8BitDoReport', () => {
+  // Real reports captured from an 8BitDo Ultimate 2 Wireless for PC
+  // (2dc8:6012, DInput mode, 2.4G dongle) on Windows. Bytes 14-25 are
+  // gyro/accel noise the parser ignores.
+  const report = (hex: string) => Buffer.from(hex, 'hex')
+  const idle = '010f7f7f7f7f00000000000000005c630281fed70ff9fffbfff5ff00000000000000'
+
+  it('ignores reports with the wrong ID or a short length', () => {
+    expect(parse8BitDoReport(report('02' + idle.slice(2)))).toEqual([])
+    expect(parse8BitDoReport(report('010f7f'))).toEqual([])
+  })
+
+  it('parses the idle report: nothing pressed, sticks centered, triggers 0', () => {
+    const events = parse8BitDoReport(report(idle))
+    expect(events.filter((e) => e.kind === 'button' && e.pressed)).toEqual([])
+    expect(axes(events).get('left_x')!).toBeCloseTo(0, 1)
+    expect(axes(events).get('l2')).toBe(0)
+    expect(axes(events).get('r2')).toBe(0)
+  })
+
+  it('parses face buttons from byte 8', () => {
+    expect(
+      buttons(
+        parse8BitDoReport(
+          report('010f7f7f7f7f00000100000000005a39024dfb4b0ff5ff1300230000000000000000'),
+        ),
+      ).get('south'),
+    ).toBe(true)
+    expect(
+      buttons(
+        parse8BitDoReport(
+          report('010f7f7f7f7f00000200000000005a6502e8fb520f0c000800060000000000000000'),
+        ),
+      ).get('east'),
+    ).toBe(true)
+    expect(
+      buttons(
+        parse8BitDoReport(
+          report('010f7f7f7f7f00000800000000005a8e0233fb300f01000f00ffff00000000000000'),
+        ),
+      ).get('west'),
+    ).toBe(true)
+    expect(
+      buttons(
+        parse8BitDoReport(
+          report('010f7f7f7f7f00001000000000005aaf0287fb470ffeff0800080000000000000000'),
+        ),
+      ).get('north'),
+    ).toBe(true)
+  })
+
+  it('parses bumpers from byte 8', () => {
+    expect(
+      buttons(
+        parse8BitDoReport(
+          report('010f7f7f7f7f00004000000000005a66054afe190f03000900050000000000000000'),
+        ),
+      ).get('l1'),
+    ).toBe(true)
+    expect(
+      buttons(
+        parse8BitDoReport(
+          report('010f7f7f7f7f00008000000000005abd069efe770ef8ff1f00160000000000000000'),
+        ),
+      ).get('r1'),
+    ).toBe(true)
+  })
+
+  it('parses view/menu/stick clicks from byte 9', () => {
+    expect(
+      buttons(
+        parse8BitDoReport(
+          report('010f7f7f7f7f00000004000000005aa9068ffe970ef8ff01001a0000000000000000'),
+        ),
+      ).get('view'),
+    ).toBe(true)
+    expect(
+      buttons(
+        parse8BitDoReport(
+          report('010f7f7f7f7f00000008000000005a9c07a8fe360effff0300feff00000000000000'),
+        ),
+      ).get('menu'),
+    ).toBe(true)
+    expect(
+      buttons(
+        parse8BitDoReport(
+          report('010f7f7b7f7f00000020000000005acd09e5fd9d0c05001900090000000000000000'),
+        ),
+      ).get('l3'),
+    ).toBe(true)
+    expect(
+      buttons(
+        parse8BitDoReport(
+          report('010f7f7f7f7f00000040000000005ace0946ffb70c03001400fdff00000000000000'),
+        ),
+      ).get('r3'),
+    ).toBe(true)
+  })
+
+  it('parses the d-pad hat at byte 1 including diagonals and neutral', () => {
+    const up = report('01007f7f7f7f00000000000000005a7c04aefe660f0b001100020000000000000000')
+    expect(buttons(parse8BitDoReport(up)).get('dpad_up')).toBe(true)
+    const down = report('01047f7f7f7f00000000000000005a4c0341feaa0f00000500ffff00000000000000')
+    expect(buttons(parse8BitDoReport(down)).get('dpad_down')).toBe(true)
+    const left = report('01067f7f7f7f00000000000000005a3e0323fe9f0f0b0025000c0000000000000000')
+    expect(buttons(parse8BitDoReport(left)).get('dpad_left')).toBe(true)
+    const right = report('01027f7f7f7f00000000000000005a440325feae0f0000feff080000000000000000')
+    expect(buttons(parse8BitDoReport(right)).get('dpad_right')).toBe(true)
+    const northEast = buttons(parse8BitDoReport(report('0101' + idle.slice(4))))
+    expect(northEast.get('dpad_up')).toBe(true)
+    expect(northEast.get('dpad_right')).toBe(true)
+    expect(buttons(parse8BitDoReport(report(idle))).get('dpad_up')).toBe(false)
+  })
+
+  it('parses triggers: l2 analog at byte 7, r2 analog at byte 6, >25% presses the button', () => {
+    const l2 = parse8BitDoReport(
+      report('010f7f7f7f7f00ff0001000000005a5209f3fdf50cf7ff01000f0000000000000000'),
+    )
+    expect(axes(l2).get('l2')).toBe(1)
+    expect(buttons(l2).get('l2')).toBe(true)
+    expect(buttons(l2).get('r2')).toBe(false)
+    const r2 = parse8BitDoReport(
+      report('010f7f7f7f7fff000002000000005ae50714fee30d1700edfff2ff00000000000000'),
+    )
+    expect(axes(r2).get('r2')).toBe(1)
+    expect(buttons(r2).get('r2')).toBe(true)
+    const soft = parse8BitDoReport(report('010f7f7f7f7f0030' + idle.slice(16)))
+    expect(axes(soft).get('l2')!).toBeCloseTo(48 / 255, 2)
+    expect(buttons(soft).get('l2')).toBe(false)
+  })
+
+  it('parses stick extremes at bytes 2-5', () => {
+    const events = parse8BitDoReport(report('010f00ff7f7f' + idle.slice(12)))
+    expect(axes(events).get('left_x')).toBe(-1)
+    expect(axes(events).get('left_y')!).toBeCloseTo(0.99, 1)
+    expect(axes(events).get('right_x')!).toBeCloseTo(0, 1)
   })
 })
 

@@ -11,6 +11,7 @@
 
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
+import { parse8BitDoReport } from '../src/controller/8bitdo-driver.js'
 import { parseDs4Report } from '../src/controller/ds4-driver.js'
 import { parseGameSirReport } from '../src/controller/gamesir-driver.js'
 import { parseGenericReport } from '../src/controller/generic-driver.js'
@@ -45,6 +46,7 @@ const PARSERS: Record<string, (data: Buffer) => ControllerEvent[]> = {
   xbox: parseXboxReport,
   ds4: parseDs4Report,
   gamesir: parseGameSirReport,
+  '8bitdo': parse8BitDoReport,
   generic: parseGenericReport,
 }
 

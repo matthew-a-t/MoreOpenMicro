@@ -1,0 +1,154 @@
+{
+  "schemaVersion": 1,
+  "openmicroVersion": "1.0.0",
+  "platform": "win32",
+  "osVersion": "Windows 11 Pro",
+  "controller": {
+    "vid": "0x2dc8",
+    "pid": "0x6012",
+    "product": "8BitDo Ultimate 2 Wireless Controller for PC",
+    "transport": "usb",
+    "driver": "8bitdo"
+  },
+  "results": {
+    "south": {
+      "status": "pass"
+    },
+    "east": {
+      "status": "pass",
+      "capture": {
+        "pressed": "010f7f7f7f7f00000200000000005adc06b5ff800e17002a00feff00000000000000",
+        "idle": "010f7f7f7f7f00000100000000005ac20676ffb30e00001900050000000000000000"
+      }
+    },
+    "west": {
+      "status": "pass",
+      "capture": {
+        "pressed": "010f7f7f7f7f00000800000000005a9807faffde0d51000500170000000000000000",
+        "idle": "010f7f7f7f7f00000200000000005adc06b5ff800e17002a00feff00000000000000"
+      }
+    },
+    "north": {
+      "status": "pass",
+      "capture": {
+        "pressed": "010f7f7f7f7f00001000000000005a4d07a8ff6d0e4000d4ff2d0000000000000000",
+        "idle": "010f7f7f7f7f00000800000000005a9807faffde0d51000500170000000000000000"
+      }
+    },
+    "dpad_up": {
+      "status": "pass",
+      "capture": {
+        "pressed": "01007f7f7f7f00000000000000005a3a07a2ff230e0200fafff5ff00000000000000",
+        "idle": "010f7f7f7f7f00001000000000005a4d07a8ff6d0e4000d4ff2d0000000000000000"
+      }
+    },
+    "dpad_down": {
+      "status": "pass",
+      "capture": {
+        "pressed": "01047f7f7f7f00000000000000005a6707c4ff110ef8ff8900060000000000000000",
+        "idle": "01007f7f7f7f00000000000000005a3a07a2ff230e0200fafff5ff00000000000000"
+      }
+    },
+    "dpad_left": {
+      "status": "pass",
+      "capture": {
+        "pressed": "01067f7f7f7f00000000000000005a510769ffe00d0c00b400100000000000000000",
+        "idle": "01047f7f7f7f00000000000000005a6707c4ff110ef8ff8900060000000000000000"
+      }
+    },
+    "dpad_right": {
+      "status": "pass",
+      "capture": {
+        "pressed": "01027f7f7f7f00000000000000005ab50759ff250e97ffd5ff9fff00000000000000",
+        "idle": "01067f7f7f7f00000000000000005a510769ffe00d0c00b400100000000000000000"
+      }
+    },
+    "l1": {
+      "status": "pass",
+      "capture": {
+        "pressed": "010f7f7f7f7f00004000000000005abb06b0ff6f0ef2ffefff200000000000000000",
+        "idle": "01027f7f7f7f00000000000000005ab50759ff250e97ffd5ff9fff00000000000000"
+      }
+    },
+    "r1": {
+      "status": "pass",
+      "capture": {
+        "pressed": "010f7f7f7f7f00008000000000005a8f062cffb60edeff97ff0e0000000000000000",
+        "idle": "010f7f7f7f7f00004000000000005abb06b0ff6f0ef2ffefff200000000000000000"
+      }
+    },
+    "l2": {
+      "status": "pass",
+      "capture": {
+        "pressed": "010f7f7f7f7f00480000000000005a2d07effe460f44006bffc1ff00000000000000",
+        "idle": "010f7f7f7f7f00008000000000005a8f062cffb60edeff97ff0e0000000000000000"
+      }
+    },
+    "r2": {
+      "status": "pass",
+      "capture": {
+        "pressed": "010f7f7f7f7f49000000000000005ae806b5fff40ef1ffbbff1e0000000000000000",
+        "idle": "010f7f7f7f7f00480000000000005a2d07effe460f44006bffc1ff00000000000000"
+      }
+    },
+    "l3": {
+      "status": "pass",
+      "capture": {
+        "pressed": "010f7f7f7f7f00000020000000005a330884fffe0d3000eeffdfff00000000000000",
+        "idle": "010f7f7f7f7f49000000000000005ae806b5fff40ef1ffbbff1e0000000000000000"
+      }
+    },
+    "r3": {
+      "status": "pass",
+      "capture": {
+        "pressed": "010f7f7f7f7f00000040000000005af80745ff100ef3ff0800020000000000000000",
+        "idle": "010f7f7f7f7f00000020000000005a330884fffe0d3000eeffdfff00000000000000"
+      }
+    },
+    "menu": {
+      "status": "pass",
+      "capture": {
+        "pressed": "010f7f7f7f7f00000008000000005a630c5c00330ca8fe23ff100000000000000000",
+        "idle": "010f7f7f7f7f00000040000000005af80745ff100ef3ff0800020000000000000000"
+      }
+    },
+    "view": {
+      "status": "pass",
+      "capture": {
+        "pressed": "010f7f7f7f7f00000004000000005a5a0c12ff0f0a9aff2c00edff00000000000000",
+        "idle": "010f7f7f7f7f00000008000000005a630c5c00330ca8fe23ff100000000000000000"
+      }
+    },
+    "touchpad": {
+      "status": "skip"
+    }
+  },
+  "axes": {
+    "left_x": {
+      "min": -1,
+      "max": 0.9921875
+    },
+    "left_y": {
+      "min": -1,
+      "max": 0.9921875
+    },
+    "right_x": {
+      "min": -1,
+      "max": 0.9921875
+    },
+    "right_y": {
+      "min": -1,
+      "max": 0.9921875
+    },
+    "l2": {
+      "min": 0,
+      "max": 1
+    },
+    "r2": {
+      "min": 0,
+      "max": 1
+    }
+  },
+  "output": "unsupported",
+  "timestamp": "2026-07-17T23:51:21.376Z"
+}

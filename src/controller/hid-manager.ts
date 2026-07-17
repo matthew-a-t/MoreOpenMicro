@@ -8,6 +8,7 @@ import { logger } from '../logger.js'
 import { Deduper } from './hal.js'
 import type { ControllerHAL } from './hal.js'
 import type { ControllerOutput } from './output.js'
+import { EIGHTBITDO_PIDS, EIGHTBITDO_VID, parse8BitDoReport } from './8bitdo-driver.js'
 import { DualSenseDriver } from './dualsense-driver.js'
 import { DS4_PIDS, DS4_VID, parseDs4Report } from './ds4-driver.js'
 import { GAMESIR_PIDS, GAMESIR_VID, parseGameSirReport } from './gamesir-driver.js'
@@ -29,7 +30,7 @@ export const DUALSENSE_PIDS = [0x0ce6, 0x0df2] // DualSense, DualSense Edge
 
 const RECONNECT_POLL_MS = 2000
 
-/** Detect the best matching device: DualSense > DS4 > Xbox > GameSir > generic gamepad. */
+/** Detect the best matching device: DualSense > DS4 > Xbox > GameSir > 8BitDo > generic gamepad. */
 export function createDriver(): ControllerHAL | null {
   let devices: Device[]
   try {
@@ -66,8 +67,21 @@ export function createDriver(): ControllerHAL | null {
   if (gamesir?.path) {
     return new RawHidDriver('gamesir', gamesir.path, parseGameSirReport)
   }
+  const eightBitDo = devices.find(
+    (d) => d.vendorId === EIGHTBITDO_VID && EIGHTBITDO_PIDS.includes(d.productId),
+  )
+  if (eightBitDo?.path) {
+    return new RawHidDriver('8bitdo', eightBitDo.path, parse8BitDoReport)
+  }
+  // Windows exposes XInput pads as a HID stub (an `&IG_` path segment) whose
+  // reads always fail — xusb22.sys never services HID input reports. Claiming
+  // one yields a silently dead controller, so the generic fallback skips them.
   const generic = devices.find(
-    (d) => d.usagePage === 0x01 && (d.usage === 0x04 || d.usage === 0x05) && d.path,
+    (d) =>
+      d.usagePage === 0x01 &&
+      (d.usage === 0x04 || d.usage === 0x05) &&
+      d.path &&
+      !/&ig_/i.test(d.path),
   )
   if (generic?.path) {
     logger.warn('Unknown controller, using generic HID driver')

@@ -1,6 +1,6 @@
 # Controller compatibility
 
-OpenMicro accepts input from DualSense, DualShock 4 (including third-party pads in DS4 mode, such as the GameSir Cyclone 2), GameSir-G7 Pro, and Xbox gamepads (wired USB or Bluetooth), with a best-effort fallback for generic HID layouts. DualSense is the recommended controller because it also supports lightbar and player-LED feedback; other controllers are input-only.
+OpenMicro accepts input from DualSense, DualShock 4 (including third-party pads in DS4 mode, such as the GameSir Cyclone 2), GameSir-G7 Pro, 8BitDo Ultimate 2 Wireless (DInput mode), and Xbox gamepads (wired USB or Bluetooth), with a best-effort fallback for generic HID layouts. DualSense is the recommended controller because it also supports lightbar and player-LED feedback; other controllers are input-only.
 
 ## Community-tested controllers
 
@@ -8,13 +8,14 @@ Every controller below has a committed `openmicro doctor` report. CI replays cap
 
 <!-- controllers:start -->
 
-| Controller                      | Reports as                      | VID:PID   | Connection | Driver    | Buttons passed | Output        | Status  |
-| ------------------------------- | ------------------------------- | --------- | ---------- | --------- | -------------- | ------------- | ------- |
-| GameSir Cyclone 2 (DS4 mode)    | DUALSHOCK 4 Wireless Controller | 054c:05c4 | bluetooth  | ds4       | 17/17          | none          | ✅ full |
-| GameSir G7 Pro                  | GameSir-G7 Pro                  | 3537:1022 | bluetooth  | gamesir   | 17/17          | none          | ✅ full |
-| Microsoft Xbox One S Controller | Controller                      | 045e:02ea | usb        | xbox      | 17/17          | none          | ✅ full |
-| Microsoft Xbox One S Controller | Xbox Wireless Controller        | 045e:0b20 | bluetooth  | xbox      | 17/17          | none          | ✅ full |
-| Sony DualSense                  | DualSense Wireless Controller   | 054c:0ce6 | usb        | dualsense | 17/17          | lightbar+LEDs | ✅ full |
+| Controller                                   | Reports as                                   | VID:PID   | Connection | Driver    | Buttons passed | Output        | Status     |
+| -------------------------------------------- | -------------------------------------------- | --------- | ---------- | --------- | -------------- | ------------- | ---------- |
+| 8BitDo Ultimate 2 Wireless Controller for PC | 8BitDo Ultimate 2 Wireless Controller for PC | 2dc8:6012 | usb        | 8bitdo    | 16/17          | none          | 🟡 partial |
+| GameSir Cyclone 2 (DS4 mode)                 | DUALSHOCK 4 Wireless Controller              | 054c:05c4 | bluetooth  | ds4       | 17/17          | none          | ✅ full    |
+| GameSir G7 Pro                               | GameSir-G7 Pro                               | 3537:1022 | bluetooth  | gamesir   | 17/17          | none          | ✅ full    |
+| Microsoft Xbox One S Controller              | Controller                                   | 045e:02ea | usb        | xbox      | 17/17          | none          | ✅ full    |
+| Microsoft Xbox One S Controller              | Xbox Wireless Controller                     | 045e:0b20 | bluetooth  | xbox      | 17/17          | none          | ✅ full    |
+| Sony DualSense                               | DualSense Wireless Controller                | 054c:0ce6 | usb        | dualsense | 17/17          | lightbar+LEDs | ✅ full    |
 
 <!-- controllers:end -->
 
@@ -29,6 +30,8 @@ openmicro doctor
 Follow the prompts, then add the generated `<vid>-<pid>-<transport>.json` file to `test/fixtures/controllers/` in a pull request. Run `npm run gen:controllers` to refresh this page. If you cannot open a pull request, paste the report into the [controller report issue template](../../issues/new?template=controller-report.yml).
 
 If OpenMicro has no parser for your controller, `doctor` captures the raw input needed to add one.
+
+**Windows + XInput pads:** Windows exposes XInput-mode controllers only as a HID stub that never yields input reports, so OpenMicro cannot read them — `doctor` detects this and says so. If the pad has a DInput/DirectInput mode, switch to it (8BitDo pads: hold **B** while powering on; the mode resets on power-off).
 
 ## Adding support for a new controller (with an AI coding agent)
 
@@ -68,6 +71,7 @@ It prints every distinct input report as hex. The agent runs it **in the backgro
 Gotchas:
 
 - **"cannot open device"** — something else holds the pad (a still-running `doctor`, Steam, another capture). Close it and retry.
+- **Opens but zero reports ever, even while pressing (Windows)** — the pad is likely in XInput mode, whose HID interface is a dead stub on Windows. Switch the pad to DInput mode and recapture.
 - **Zero reports at idle** — normal; many pads only report on change.
 - **A button produces no frame** — it may arrive as a separate message/report type (the Xbox guide button is its own GIP message type `0x07`; the GameSir home button is report ID `0x02`). Capture again pressing only that button.
 
