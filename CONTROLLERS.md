@@ -10,7 +10,7 @@ Every controller below has a committed `openmicro doctor` report. CI replays cap
 
 | Controller                                   | Reports as                                   | VID:PID   | Connection | Driver    | Buttons passed | Output        | Status     |
 | -------------------------------------------- | -------------------------------------------- | --------- | ---------- | --------- | -------------- | ------------- | ---------- |
-| 8BitDo Ultimate 2 Wireless Controller for PC | 8BitDo Ultimate 2 Wireless Controller for PC | 2dc8:6012 | usb        | 8bitdo    | 16/17          | none          | 🟡 partial |
+| 8BitDo Ultimate 2 Wireless Controller for PC | 8BitDo Ultimate 2 Wireless Controller for PC | 2dc8:6012 | usb        | 8bitdo    | 18/19          | none          | 🟡 partial |
 | GameSir Cyclone 2 (DS4 mode)                 | DUALSHOCK 4 Wireless Controller              | 054c:05c4 | bluetooth  | ds4       | 17/17          | none          | ✅ full    |
 | GameSir G7 Pro                               | GameSir-G7 Pro                               | 3537:1022 | bluetooth  | gamesir   | 17/17          | none          | ✅ full    |
 | Microsoft Xbox One S Controller              | Controller                                   | 045e:02ea | usb        | xbox      | 17/17          | none          | ✅ full    |
@@ -81,7 +81,7 @@ Map the capture to a parser: a `parseXReport(data: Buffer): ControllerEvent[]` f
 
 Conventions (any existing driver is a template):
 
-- Emit standard `ButtonId`s (`south`/`east`/`west`/`north`, not A/B/X/Y). The pad's home/guide button maps to `touchpad`.
+- Emit standard `ButtonId`s (`south`/`east`/`west`/`north`, not A/B/X/Y). The pad's home/guide button maps to `touchpad`. Extra back paddles map to `l4`/`r4`.
 - Synthesize `l2`/`r2` button presses from the analog triggers at a >25% threshold.
 - Normalize sticks to -1..1 and triggers to 0..1.
 - Return `[]` for short reports or wrong report IDs — never throw on malformed input.

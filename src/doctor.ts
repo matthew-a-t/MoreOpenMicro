@@ -49,6 +49,8 @@ const BUTTON_ORDER: ButtonId[] = [
   'menu',
   'view',
   'touchpad',
+  'l4',
+  'r4',
 ]
 
 const AXIS_ORDER: AxisId[] = ['left_x', 'left_y', 'right_x', 'right_y', 'l2', 'r2']

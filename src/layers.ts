@@ -61,6 +61,8 @@ const CONTROL_IDS: readonly ControlId[] = [
   'menu',
   'view',
   'touchpad',
+  'l4',
+  'r4',
   'lstick_up',
   'lstick_down',
   'lstick_left',
@@ -155,6 +157,9 @@ export const DEFAULT_CONFIG: OpenMicroConfig = {
         rstick_cw: { type: 'thinking_depth', delta: 1 },
         rstick_ccw: { type: 'thinking_depth', delta: -1 },
         touchpad: TOUCHPAD_CYCLE,
+        // Back-paddle mirror of the touchpad cycle, for pads whose home
+        // button never reaches the OS (8BitDo Ultimate 2 in DInput mode).
+        r4: TOUCHPAD_CYCLE,
       },
     },
     blankLayer(1),

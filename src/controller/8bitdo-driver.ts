@@ -42,8 +42,12 @@ export function parse8BitDoReport(data: Buffer): ControllerEvent[] {
   const map: Array<[number, number, ButtonId]> = [
     [b8, 0x01, 'south'],
     [b8, 0x02, 'east'],
+    // 0x04/0x20 are the R4/L4 back paddles — verified live; the firmware
+    // gives them distinct codes out of the box in DInput mode.
+    [b8, 0x04, 'r4'],
     [b8, 0x08, 'west'],
     [b8, 0x10, 'north'],
+    [b8, 0x20, 'l4'],
     [b8, 0x40, 'l1'],
     [b8, 0x80, 'r1'],
     [b9, 0x04, 'view'],

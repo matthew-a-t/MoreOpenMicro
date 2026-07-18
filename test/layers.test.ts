@@ -92,6 +92,19 @@ describe('loadConfig / saveConfig', () => {
     expect(loadConfig(configPath)).toEqual(custom)
   })
 
+  it('accepts l4/r4 paddle bindings and ships r4 session-cycle as a default', () => {
+    expect(DEFAULT_CONFIG.layers[0].bindings.r4).toEqual({ type: 'focus_session', index: -1 })
+    const custom: OpenMicroConfig = {
+      ...DEFAULT_CONFIG,
+      layers: [
+        { name: 'L1', color: { r: 0, g: 0, b: 0 }, bindings: { l4: { type: 'new_chat' } } },
+        ...DEFAULT_CONFIG.layers.slice(1),
+      ] as OpenMicroConfig['layers'],
+    }
+    saveConfig(custom, configPath)
+    expect(loadConfig(configPath)).toEqual(custom)
+  })
+
   it('rejects an unknown binding key', () => {
     const bad = JSON.stringify({
       layers: [

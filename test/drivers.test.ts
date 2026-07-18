@@ -470,6 +470,17 @@ describe('parse8BitDoReport', () => {
     expect(axes(events).get('left_y')!).toBeCloseTo(0.99, 1)
     expect(axes(events).get('right_x')!).toBeCloseTo(0, 1)
   })
+
+  it('parses the L4/R4 back paddles from byte 8', () => {
+    // Byte values verified live: left paddle held = 0x20, right = 0x04.
+    const l4 = buttons(parse8BitDoReport(report('010f7f7f7f7f0000200000000000' + idle.slice(28))))
+    expect(l4.get('l4')).toBe(true)
+    expect(l4.get('r4')).toBe(false)
+    const r4 = buttons(parse8BitDoReport(report('010f7f7f7f7f0000040000000000' + idle.slice(28))))
+    expect(r4.get('r4')).toBe(true)
+    expect(r4.get('l4')).toBe(false)
+    expect(buttons(parse8BitDoReport(report(idle))).get('l4')).toBe(false)
+  })
 })
 
 describe('Deduper', () => {

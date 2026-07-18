@@ -8,7 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-- 8BitDo Ultimate 2 Wireless for PC support (`2dc8:6012`, DInput mode — hold B while powering on): new `8bitdo` parser for the 0x01 report (hat d-pad, 0-255 sticks, trigger analogs at bytes 6-7 in R2-then-L2 order, gyro bytes ignored), routed ahead of the generic fallback and certified 16/17 with a doctor fixture CI replays. The home button and L4/R4 paddles emit nothing in DInput mode, so `touchpad` has no source on this pad
+- 8BitDo Ultimate 2 Wireless for PC support (`2dc8:6012`, DInput mode — hold B while powering on): new `8bitdo` parser for the 0x01 report (hat d-pad, 0-255 sticks, trigger analogs at bytes 6-7 in R2-then-L2 order, gyro bytes ignored), routed ahead of the generic fallback and certified live with a doctor fixture CI replays. The home button emits nothing in DInput mode, so `touchpad` has no source on this pad
+- New `l4`/`r4` back-paddle `ButtonId`s, bindable in layer config and walked by the doctor checklist. The Ultimate 2's paddles emit distinct codes out of the box (byte 8 `0x20`/`0x04`, verified live); `r4` ships bound to the session-focus cycle in the default config, covering pads whose home button never reaches the OS. Pads without paddles simply never emit them
 - `openmicro doctor` now explains XInput mode on Windows instead of reporting "no controller": XInput pads surface only as an unreadable HID stub, and 8BitDo pads get the exact hold-B-while-powering-on instruction
 
 ### Fixed

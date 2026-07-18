@@ -20,6 +20,8 @@ export type ButtonId =
   | 'menu' // Menu / Options
   | 'view' // View / Create
   | 'touchpad'
+  | 'l4' // left back paddle (pads that have one)
+  | 'r4' // right back paddle
 
 export type AxisId = 'left_x' | 'left_y' | 'right_x' | 'right_y' | 'l2' | 'r2'
 
