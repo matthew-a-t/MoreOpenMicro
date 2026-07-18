@@ -56,6 +56,6 @@ npm run gen:controllers  # regenerate CONTROLLERS.md from test/fixtures/controll
 
 ## Releases
 
-- **Release inside the parent PR** (this fork's convention, also documented in CONTRIBUTING.md): when a fix/feature PR is going to ship as a release, push the version bump (`npm version X.Y.Z --no-git-tag-version`) and CHANGELOG entry as a commit on that same PR — do not open a separate release PR. After the parent PR merges, tag `vX.Y.Z` on main and push the tag; the publish workflow handles npm.
+- **Release inside the parent PR** (this fork's convention, also documented in CONTRIBUTING.md): when a fix/feature PR is going to ship as a release, push the version bump (`npm version X.Y.Z --no-git-tag-version`) and CHANGELOG entry as a commit on that same PR — do not open a separate release PR. After the parent PR merges, tag `vX.Y.Z` on main and push the tag; the release workflow (`publish.yml`) runs verify and creates the GitHub Release from the CHANGELOG section. **No npm publish** — the `openmicro` npm name and its trusted-publishing binding belong to upstream; installs come from git/source.
 - The CHANGELOG entry moves the `Unreleased` section under a new `[X.Y.Z] - YYYY-MM-DD` heading — the workflow uses that section as the GitHub release notes.
 - Verification gate before any release commit: `npm run verify` (typecheck + lint + format:check + test).
