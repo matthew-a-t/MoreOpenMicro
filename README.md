@@ -4,12 +4,18 @@
 
 Bring Codex Micro to any gaming controller and coding harness
 
+> **About this fork.** MoreOpenMicro (MOM) is a personal fun-project fork of [OpenMicro](https://github.com/stephenleo/OpenMicro), optimized to support [outputease](https://outputease.com) developers: Windows and Linux are the primary platforms (upstream is macOS-first), the 8BitDo Ultimate 2 Wireless for PC is the primary controller, and the default workflows lean on the [outputease toolkit](https://toolkit.outputease.com) session rituals (`/quickstart`, `/dev-check`, `/checkpoint`, `/session-end`). The fork's conventions — recommended stick semantics and the byte-level verified Claude Code key map — live in [docs/outputease.md](docs/outputease.md).
+
 ## Start in 60 seconds
 
 You need Windows, Linux, or macOS, Node.js 22 or newer, Claude Code or Codex CLI, and a connected controller. (`openmicro codex-app` is the one macOS-only command — it drives the Codex desktop app.)
 
+This fork is not published to npm — the `openmicro` package name belongs to [upstream](https://github.com/stephenleo/OpenMicro), so `npm i -g openmicro` installs the original, not MOM. Install from source instead:
+
 ```sh
-npm i -g openmicro
+git clone https://github.com/matthew-a-t/MoreOpenMicro
+cd MoreOpenMicro
+npm install && npm run build && npm link
 
 openmicro claude # or just: openmicro
 openmicro codex
@@ -50,6 +56,7 @@ Voice and thinking-depth support varies by harness; see [OpenMicro feature parit
 
 - Respond to agents without hunting through terminal tabs.
 - Launch review, debug, refactor, and test workflows with a stick flick.
+- Fire the [outputease toolkit](https://toolkit.outputease.com) session rituals (`/quickstart`, `/dev-check`, `/checkpoint`, `/session-end`) from the right stick — the recommended layout is in [docs/outputease.md](docs/outputease.md).
 - Switch among active sessions from one controller.
 - See focused-session state on DualSense.
 - Remap six layers for project-specific workflows.
@@ -140,6 +147,7 @@ The diagnostic checks controller input and, on DualSense, lightbar/player-LED ou
 
 - DualSense is the only controller with lightbar and player-LED output. DS4, Xbox, GameSir, and 8BitDo controllers are input-only; generic HID input is best-effort because report layouts vary.
 - DualSense has five player LEDs, so feedback represents at most five active session slots.
+- The 8BitDo Ultimate 2 Wireless for PC (this fork's primary pad) works in DInput mode only — hold **B** while powering on; the mode resets on every power-off. Its home button emits nothing in DInput, so the **R4** back paddle ships bound to session-focus cycling in place of the touchpad; the L4/R4 paddles are first-class bindable buttons (`l4`/`r4`).
 
 ## Add another harness
 
