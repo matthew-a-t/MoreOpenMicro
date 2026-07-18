@@ -6,7 +6,7 @@ Bring Codex Micro to any gaming controller and coding harness
 
 ## Start in 60 seconds
 
-You need macOS, Node.js 22 or newer, Claude Code or Codex CLI, and a connected controller. OpenMicro is macOS-first; other platforms are not yet tested.
+You need Windows, Linux, or macOS, Node.js 22 or newer, Claude Code or Codex CLI, and a connected controller. (`openmicro codex-app` is the one macOS-only command — it drives the Codex desktop app.)
 
 ```sh
 npm i -g openmicro
@@ -138,7 +138,7 @@ The diagnostic checks controller input and, on DualSense, lightbar/player-LED ou
 
 ## Hardware notes
 
-- DualSense is the only controller with lightbar and player-LED output. DS4, Xbox, and GameSir controllers are input-only; generic HID input is best-effort because report layouts vary.
+- DualSense is the only controller with lightbar and player-LED output. DS4, Xbox, GameSir, and 8BitDo controllers are input-only; generic HID input is best-effort because report layouts vary.
 - DualSense has five player LEDs, so feedback represents at most five active session slots.
 
 ## Add another harness
@@ -174,6 +174,10 @@ The binary does not load harness plugins from configuration yet, so a third-part
 ### Controller is connected but OpenMicro cannot open it
 
 Another process probably owns the device exclusively. Quit other controller tools, Steam, browser tabs using Gamepad/WebHID, and PS Remote Play, then retry.
+
+### Controller is connected but OpenMicro sees nothing (Windows)
+
+The pad is probably in XInput mode, which Windows exposes only as a HID stub that never delivers input — OpenMicro skips it rather than claim a dead device. Switch the pad to DInput mode (8BitDo pads: hold **B** while powering on — the mode resets every power-off) and restart. `openmicro doctor` diagnoses this state and prints the same hint.
 
 On macOS, this command lists processes with the DualSense open:
 
