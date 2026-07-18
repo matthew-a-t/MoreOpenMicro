@@ -132,25 +132,40 @@ describe('installCodexHooks', () => {
     }
   })
 
-  it('adds a cmd-compatible commandWindows variant for the codex Windows hook runner', () => {
-    // Verified live (codex 0.144.4, 2026-07-17): the Windows hook runner is
-    // not POSIX — the bash-flavored `command` fails, and codex supports a
-    // `commandWindows` override per hook entry.
+  it('adds a commandWindows variant invoking the installed PowerShell wrapper', () => {
+    // Verified live (codex 0.144.4, 2026-07-17): the Windows hook runner
+    // executes neither POSIX nor cmd shell syntax — bash- and cmd-flavored
+    // command strings both report Failed, while a `powershell -File` command
+    // (herdr's pattern) completes. So the installer ships a .ps1 wrapper next
+    // to hooks.json and points `commandWindows` at it.
     installCodexHooks(settingsPath)
     const settings = read()
+    const scriptPath = path.join(path.dirname(settingsPath), 'openmicro-hook.ps1')
     for (const [event, groups] of Object.entries(settings.hooks)) {
       const hook = groups[0]!.hooks[0]! as { command: string; commandWindows?: string }
       const win = hook.commandWindows
       expect(win, event).toBeDefined()
-      expect(win).toContain(`/om-hook/${event}`)
-      expect(win).toContain('X-Openmicro-Instance-Id: %OPENMICRO_INSTANCE_ID%')
-      expect(win).toContain('X-Herdr-Pane-Id: %HERDR_PANE_ID%')
-      expect(win).toContain('>NUL')
-      expect(win).toContain('& echo {}')
-      expect(win!.includes('/dev/null')).toBe(false)
-      expect(win!.includes("'")).toBe(false) // cmd has no single-quote syntax
+      expect(win).toContain(`-File "${scriptPath}" ${event}`)
+      expect(win).toContain('powershell -NoProfile -ExecutionPolicy Bypass')
       expect(win!.includes('/hook/')).toBe(false) // coexistence guard
     }
+    const script = fs.readFileSync(scriptPath, 'utf8')
+    expect(script).toContain('127.0.0.1:48762/om-hook/')
+    expect(script).toContain('X-Openmicro-Instance-Id: $env:OPENMICRO_INSTANCE_ID')
+    expect(script).toContain('X-Herdr-Pane-Id: $env:HERDR_PANE_ID')
+    expect(script).toContain('curl.exe') // not the PS curl alias
+    expect(script).toContain("'{}'") // always answers the hook JSON response
+  })
+
+  it('rewrites the wrapper script only when its content changed', () => {
+    installCodexHooks(settingsPath)
+    const scriptPath = path.join(path.dirname(settingsPath), 'openmicro-hook.ps1')
+    fs.utimesSync(scriptPath, new Date(0), new Date(0))
+    installCodexHooks(settingsPath)
+    expect(fs.statSync(scriptPath).mtimeMs).toBe(0) // same content — not rewritten
+    fs.writeFileSync(scriptPath, 'stale')
+    installCodexHooks(settingsPath)
+    expect(fs.readFileSync(scriptPath, 'utf8')).not.toBe('stale')
   })
 
   it('is byte-idempotent and reports unchanged on the second install', () => {

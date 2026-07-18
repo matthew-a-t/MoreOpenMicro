@@ -161,15 +161,49 @@ function codexHookCommand(event: string): string {
   return `curl -s --max-time 1 -X POST ${HOOK_URL}${event} -H 'Content-Type: application/json' -H "${OM_HEADER}: $OPENMICRO_INSTANCE_ID" -H "${HERDR_HEADER}: $HERDR_PANE_ID" -d @- >/dev/null 2>&1 || true; printf '{}'`
 }
 
-// Codex's Windows hook runner is not POSIX (verified live on codex 0.144.4:
-// the bash-flavored `command` reports "Failed", while a cmd-style command
-// runs); codex supports a per-entry `commandWindows` override for exactly
-// this. cmd notes: no single quotes, `>NUL` is the null device, `& echo {}`
-// emits the required JSON response regardless of curl's exit code. An unset
-// %VAR% stays literal in cmd — the host ignores unknown instance ids, so
-// unwrapped sessions are dropped the same as with an empty header.
-function codexHookCommandWindows(event: string): string {
-  return `curl -s --max-time 1 -X POST ${HOOK_URL}${event} -H "Content-Type: application/json" -H "${OM_HEADER}: %OPENMICRO_INSTANCE_ID%" -H "${HERDR_HEADER}: %HERDR_PANE_ID%" -d @- >NUL 2>&1 & echo {}`
+// Codex's Windows hook runner executes no shell syntax at all (verified live
+// on codex 0.144.4: bash- and cmd-flavored command strings both report
+// "Failed", while herdr's `powershell -File` hook completes). So the win32
+// path mirrors herdr: install a PowerShell wrapper next to hooks.json and
+// point the per-entry `commandWindows` override at it. The wrapper carries
+// the env-var headers (no shell expansion available in the command string)
+// and always prints '{}' so a dead host never fails a codex turn.
+const CODEX_WRAPPER_NAME = 'openmicro-hook.ps1'
+
+function codexWrapperScript(): string {
+  return `# openmicro codex hook wrapper (${COMMAND_MARKER}) — installed by openmicro,
+# safe to delete when openmicro is uninstalled.
+param([string]$Event)
+# Body must travel via stdin: PowerShell's native-argument passing strips the
+# JSON's quotes, and the default console encodings mangle non-ASCII payloads.
+# BOM-less UTF-8 everywhere — [Text.Encoding]::UTF8 prepends BOMs that make
+# the host's JSON.parse reject the body.
+$utf8 = New-Object System.Text.UTF8Encoding $false
+[Console]::InputEncoding = $utf8
+$OutputEncoding = $utf8
+$body = [Console]::In.ReadToEnd()
+try {
+  $body | curl.exe -s --max-time 1 -X POST "${HOOK_URL}$Event" -H "Content-Type: application/json" -H "${OM_HEADER}: $env:OPENMICRO_INSTANCE_ID" -H "${HERDR_HEADER}: $env:HERDR_PANE_ID" --data-binary '@-' | Out-Null
+} catch {}
+'{}'
+`
+}
+
+function codexHookCommandWindows(event: string, scriptPath: string): string {
+  return `powershell -NoProfile -ExecutionPolicy Bypass -File "${scriptPath}" ${event}`
+}
+
+/** Write the wrapper only when content drifted — hooks.json references it by
+ * path, and codex trust hashes hook definitions, not this file. */
+function installCodexWrapperScript(scriptPath: string): void {
+  const desired = codexWrapperScript()
+  try {
+    if (fs.existsSync(scriptPath) && fs.readFileSync(scriptPath, 'utf8') === desired) return
+    fs.mkdirSync(path.dirname(scriptPath), { recursive: true })
+    fs.writeFileSync(scriptPath, desired, 'utf8')
+  } catch (err) {
+    logger.warn('hooks-install: failed to write Codex wrapper script', err)
+  }
 }
 
 function isCodexOurs(group: unknown): boolean {
@@ -199,6 +233,8 @@ function isCodexOurs(group: unknown): boolean {
 export function installCodexHooks(hooksPath?: string): HookWriteResult {
   const codexHome = process.env.CODEX_HOME ?? path.join(os.homedir(), '.codex')
   const target = hooksPath ?? path.join(codexHome, 'hooks.json')
+  const wrapperPath = path.join(path.dirname(target), CODEX_WRAPPER_NAME)
+  installCodexWrapperScript(wrapperPath)
 
   return updateHookFile({
     target,
@@ -231,7 +267,7 @@ export function installCodexHooks(hooksPath?: string): HookWriteResult {
               {
                 type: 'command',
                 command: codexHookCommand(event),
-                commandWindows: codexHookCommandWindows(event),
+                commandWindows: codexHookCommandWindows(event, wrapperPath),
               },
             ],
           },

@@ -30,10 +30,14 @@ Verified live against codex-cli 0.144.4 (2026-07-17):
   per-run `--enable plugin_hooks`), hooks.json is loaded but nothing executes —
   no error, no warning. `hooks = true` is a different feature and does not
   enable it.
-- The Windows hook runner is not a POSIX shell: the bash-flavored hook command
-  reports `Failed`, while cmd syntax runs. OpenMicro therefore installs a
-  `commandWindows` variant (cmd syntax: `%VAR%`, `>NUL`, `& echo {}`) alongside
-  the POSIX `command` on every Codex hook entry.
+- The Windows hook runner executes no shell syntax at all: bash- and
+  cmd-flavored command strings both report `Failed`, while a
+  `powershell -File` command (herdr's pattern) completes. OpenMicro therefore
+  installs `openmicro-hook.ps1` next to hooks.json and points a
+  `commandWindows` override at it on every Codex hook entry. Inside the
+  wrapper, the body must travel via stdin with BOM-less UTF-8 — PowerShell's
+  native-argument passing strips JSON quotes, and `[Text.Encoding]::UTF8`
+  prepends BOMs that `JSON.parse` rejects.
 - Codex hook trust is definition-hash based: any change to hooks.json (including
   OpenMicro adding `commandWindows`) invalidates trust until the hooks are
   re-approved via `/hooks` inside interactive Codex. Untrusted hooks are
