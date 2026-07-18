@@ -132,6 +132,27 @@ describe('installCodexHooks', () => {
     }
   })
 
+  it('adds a cmd-compatible commandWindows variant for the codex Windows hook runner', () => {
+    // Verified live (codex 0.144.4, 2026-07-17): the Windows hook runner is
+    // not POSIX — the bash-flavored `command` fails, and codex supports a
+    // `commandWindows` override per hook entry.
+    installCodexHooks(settingsPath)
+    const settings = read()
+    for (const [event, groups] of Object.entries(settings.hooks)) {
+      const hook = groups[0]!.hooks[0]! as { command: string; commandWindows?: string }
+      const win = hook.commandWindows
+      expect(win, event).toBeDefined()
+      expect(win).toContain(`/om-hook/${event}`)
+      expect(win).toContain('X-Openmicro-Instance-Id: %OPENMICRO_INSTANCE_ID%')
+      expect(win).toContain('X-Herdr-Pane-Id: %HERDR_PANE_ID%')
+      expect(win).toContain('>NUL')
+      expect(win).toContain('& echo {}')
+      expect(win!.includes('/dev/null')).toBe(false)
+      expect(win!.includes("'")).toBe(false) // cmd has no single-quote syntax
+      expect(win!.includes('/hook/')).toBe(false) // coexistence guard
+    }
+  })
+
   it('is byte-idempotent and reports unchanged on the second install', () => {
     expect(installCodexHooks(settingsPath)).toBe('changed')
     const first = fs.readFileSync(settingsPath, 'utf8')

@@ -18,7 +18,7 @@ openmicro codex-app # drive the Codex macOS desktop app
 
 `openmicro codex-app` drives the Codex desktop app instead of a terminal CLI: new chat and prompt prefill use `codex://` deep links (no permission needed), while submit (Enter), reject (Esc), dictation (Ctrl+Shift+D), d-pad arrows, and Ctrl+U send keystrokes and need Accessibility permission for your terminal. A stick-flick prompt prefills the composer; press submit to send it. The app launches automatically and the terminal shows live status (controller, actions, agent state).
 
-OpenMicro installs its lifecycle hooks automatically. If Codex reports that its hooks changed, open `/hooks` in Codex and trust the OpenMicro hooks.
+OpenMicro installs its lifecycle hooks automatically. If Codex reports that its hooks changed, open `/hooks` in Codex and trust the OpenMicro hooks. Codex only runs hooks when its `plugin_hooks` feature is enabled — add `plugin_hooks = true` under `[features]` in `~/.codex/config.toml` (verified against codex-cli 0.144; without it, hooks are silently skipped and OpenMicro gets no Codex state feedback). On Windows the installed entries carry a `commandWindows` variant because Codex's Windows hook runner is not a POSIX shell.
 
 Controller support depends on the exact device and connection. Check the [controller compatibility guide](CONTROLLERS.md) before you start, or run `openmicro doctor` to test your controller.
 

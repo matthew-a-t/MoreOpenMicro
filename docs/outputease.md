@@ -21,6 +21,26 @@ rituals that matter to controller bindings:
 Skill injection from a controller is plain prompt text plus Enter — the same
 mechanism the `new_chat` action uses for `/clear`.
 
+## Codex hooks on Windows
+
+Verified live against codex-cli 0.144.4 (2026-07-17):
+
+- Codex's hook engine is gated behind the `plugin_hooks` feature. Without
+  `plugin_hooks = true` under `[features]` in `~/.codex/config.toml` (or a
+  per-run `--enable plugin_hooks`), hooks.json is loaded but nothing executes —
+  no error, no warning. `hooks = true` is a different feature and does not
+  enable it.
+- The Windows hook runner is not a POSIX shell: the bash-flavored hook command
+  reports `Failed`, while cmd syntax runs. OpenMicro therefore installs a
+  `commandWindows` variant (cmd syntax: `%VAR%`, `>NUL`, `& echo {}`) alongside
+  the POSIX `command` on every Codex hook entry.
+- Codex hook trust is definition-hash based: any change to hooks.json (including
+  OpenMicro adding `commandWindows`) invalidates trust until the hooks are
+  re-approved via `/hooks` inside interactive Codex. Untrusted hooks are
+  skipped silently.
+- `codex exec` hangs at ~0 CPU when stdin is an open pipe — close it
+  (`< NUL` via cmd) when scripting headless runs.
+
 ## Recommended stick semantics
 
 The recommended layer-1 stick layout separates conversation from lifecycle:

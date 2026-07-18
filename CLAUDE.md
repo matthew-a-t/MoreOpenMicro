@@ -50,6 +50,7 @@ npm run gen:controllers  # regenerate CONTROLLERS.md from test/fixtures/controll
 ## Non-obvious constraints
 
 - **Vibesense coexistence:** vibesense's hook installer purges any hook command containing the bare substring `/hook/`. OpenMicro therefore posts to `/om-hook/` and identifies its own entries by the full marker `127.0.0.1:48762/om-hook/`. Never rename the hook path to anything containing `/hook/`.
+- **Codex hooks are triple-gated** (verified live on codex-cli 0.144.4, details in [docs/outputease.md](docs/outputease.md)): the `plugin_hooks` feature must be on in `~/.codex/config.toml`, hooks.json must be trusted via `/hooks` in interactive Codex (definition-hash trust — every installer rewrite re-requires it), and on Windows the hook runner is not POSIX, so every Codex entry carries a cmd-syntax `commandWindows` alongside the POSIX `command`.
 - Hook installation (`src/hooks-install.ts`) is idempotent merge/purge with atomic writes into `~/.claude/settings.json` and `~/.codex/hooks.json`; the hook command is a curl that no-ops when openmicro isn't running, so hooks never need uninstalling.
 - New controller drivers are pure parse functions + a captured fixture — study `xbox-driver.ts` and its tests for the pattern. Hardware-behavior changes (lightbar, gestures, HID) should state in the PR what was verified on a physical pad vs. only in tests.
 - Harness PRs need pure `stateForHookEvent`/`resolveAction` unit tests and must note which actions return `null`.

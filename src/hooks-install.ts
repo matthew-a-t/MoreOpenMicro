@@ -19,6 +19,7 @@ import { HOST_PORT, HOOK_URL } from './ports.js'
 interface HookEntry {
   type: string
   command: string
+  commandWindows?: string
 }
 
 interface HookGroup {
@@ -160,6 +161,17 @@ function codexHookCommand(event: string): string {
   return `curl -s --max-time 1 -X POST ${HOOK_URL}${event} -H 'Content-Type: application/json' -H "${OM_HEADER}: $OPENMICRO_INSTANCE_ID" -H "${HERDR_HEADER}: $HERDR_PANE_ID" -d @- >/dev/null 2>&1 || true; printf '{}'`
 }
 
+// Codex's Windows hook runner is not POSIX (verified live on codex 0.144.4:
+// the bash-flavored `command` reports "Failed", while a cmd-style command
+// runs); codex supports a per-entry `commandWindows` override for exactly
+// this. cmd notes: no single quotes, `>NUL` is the null device, `& echo {}`
+// emits the required JSON response regardless of curl's exit code. An unset
+// %VAR% stays literal in cmd — the host ignores unknown instance ids, so
+// unwrapped sessions are dropped the same as with an empty header.
+function codexHookCommandWindows(event: string): string {
+  return `curl -s --max-time 1 -X POST ${HOOK_URL}${event} -H "Content-Type: application/json" -H "${OM_HEADER}: %OPENMICRO_INSTANCE_ID%" -H "${HERDR_HEADER}: %HERDR_PANE_ID%" -d @- >NUL 2>&1 & echo {}`
+}
+
 function isCodexOurs(group: unknown): boolean {
   if (!group || typeof group !== 'object') return false
   const hooks = (group as { hooks?: unknown }).hooks
@@ -214,7 +226,15 @@ export function installCodexHooks(hooksPath?: string): HookWriteResult {
         const groups = Array.isArray(settings.hooks[event]) ? settings.hooks[event] : []
         settings.hooks[event] = [
           ...groups,
-          { hooks: [{ type: 'command', command: codexHookCommand(event) }] },
+          {
+            hooks: [
+              {
+                type: 'command',
+                command: codexHookCommand(event),
+                commandWindows: codexHookCommandWindows(event),
+              },
+            ],
+          },
         ]
       }
 
