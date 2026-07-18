@@ -48,6 +48,24 @@ function getEnvVar(env: Record<string, string | undefined>, name: string): strin
   return key ? env[key] : undefined
 }
 
+/** Split a Windows PATH value the way the OS does: `;` separates entries
+ * except inside double quotes, and the quotes themselves are not part of the
+ * directory name (installers commonly write `"C:\Program Files\..."`). */
+function splitWindowsPath(value: string): string[] {
+  const entries: string[] = []
+  let current = ''
+  let inQuotes = false
+  for (const ch of value) {
+    if (ch === '"') inQuotes = !inQuotes
+    else if (ch === ';' && !inQuotes) {
+      entries.push(current)
+      current = ''
+    } else current += ch
+  }
+  entries.push(current)
+  return entries.filter(Boolean)
+}
+
 /** node-pty's Windows ConPTY `startProcess` does no PATHEXT-style extension
  * resolution: it looks for the literal filename given and throws `File not
  * found` if it doesn't exist verbatim (verified: bare `claude` fails, only
@@ -70,7 +88,7 @@ export function resolveWindowsCommand(
   if (platform !== 'win32') return { command, args }
   if (/[\\/]/.test(command) || path.extname(command) !== '') return { command, args }
 
-  const dirs = (getEnvVar(env, 'PATH') ?? '').split(';').filter(Boolean)
+  const dirs = splitWindowsPath(getEnvVar(env, 'PATH') ?? '')
   const exts = (getEnvVar(env, 'PATHEXT') ?? DEFAULT_PATHEXT).split(';').filter(Boolean)
 
   for (const dir of dirs) {

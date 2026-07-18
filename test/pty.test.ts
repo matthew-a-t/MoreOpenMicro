@@ -262,6 +262,31 @@ describe('resolveWindowsCommand', () => {
     expect(result).toEqual({ command: path.join(dir, 'claude.exe'), args: [] })
   })
 
+  it('resolves a command from a double-quoted PATH entry', () => {
+    // Windows PATH entries are commonly quoted (installers write
+    // `"C:\Program Files\..."`); the quotes are not part of the directory name.
+    const dir = makePathDir(['claude.exe'])
+    const result = resolveWindowsCommand('claude', [], 'win32', {
+      PATH: `"${dir}"`,
+      PATHEXT: '.EXE',
+    })
+    expect(result).toEqual({ command: path.join(dir, 'claude.exe'), args: [] })
+  })
+
+  it('treats a semicolon inside a quoted PATH entry as part of the directory name', () => {
+    // Quoting exists precisely so a directory name may contain the separator.
+    const base = makePathDir()
+    const dir = path.join(base, 'odd;name')
+    fs.mkdirSync(dir)
+    fs.writeFileSync(path.join(dir, 'claude.exe'), '')
+    const other = makePathDir(['other.exe'])
+    const result = resolveWindowsCommand('claude', [], 'win32', {
+      PATH: `${other};"${dir}"`,
+      PATHEXT: '.EXE',
+    })
+    expect(result).toEqual({ command: path.join(dir, 'claude.exe'), args: [] })
+  })
+
   it('looks up PATH and PATHEXT case-insensitively (real Windows shells vary the casing)', () => {
     // Node's process.env access is case-insensitive on win32, but a plain
     // object copy (as spawnAgentProcess makes) is not, and real Windows
