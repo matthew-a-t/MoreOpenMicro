@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-07-17
+
 ### Added
 
 - 8BitDo Ultimate 2 Wireless for PC support (`2dc8:6012`, DInput mode — hold B while powering on): new `8bitdo` parser for the 0x01 report (hat d-pad, 0-255 sticks, trigger analogs at bytes 6-7 in R2-then-L2 order, gyro bytes ignored), routed ahead of the generic fallback and certified live with a doctor fixture CI replays. The home button emits nothing in DInput mode, so `touchpad` has no source on this pad
