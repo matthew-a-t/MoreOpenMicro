@@ -10,7 +10,8 @@
   },
   "type": "module",
   "bin": {
-    "openmicro": "dist/cli.js"
+    "openmicro": "dist/cli.js",
+    "mom": "dist/cli.js"
   },
   "exports": {
     ".": {

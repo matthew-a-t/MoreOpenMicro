@@ -71,6 +71,8 @@ Usage:
   openmicro --version                        Show openmicro's version
   openmicro --help                           Show this message
 
+\`mom\` (MoreOpenMicro) is an alias for \`openmicro\` (e.g. \`mom claude\`).
+
 The first instance to start becomes the host: it owns the controller and
 aggregates agent state. Later instances register as clients and receive
 forwarded keystrokes. Remap controls in ~/.openmicro/config.json.`

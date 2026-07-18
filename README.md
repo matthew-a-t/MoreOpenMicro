@@ -20,6 +20,7 @@ npm install && npm run build && npm link
 openmicro claude # or just: openmicro
 openmicro codex
 openmicro codex-app # drive the Codex macOS desktop app
+mom claude # mom (MoreOpenMicro) is an alias for openmicro
 ```
 
 `openmicro codex-app` drives the Codex desktop app instead of a terminal CLI: new chat and prompt prefill use `codex://` deep links (no permission needed), while submit (Enter), reject (Esc), dictation (Ctrl+Shift+D), d-pad arrows, and Ctrl+U send keystrokes and need Accessibility permission for your terminal. A stick-flick prompt prefills the composer; press submit to send it. The app launches automatically and the terminal shows live status (controller, actions, agent state).
